@@ -13,10 +13,12 @@ yarn
 node server.js 0.0.0.0 <port1> <port2>
 > connect 13.245.17.210 8545 # our EC2 server in Cape Town
 ```
+Port1 is used for client interaction while Port2 is used for peer interactions
+
 In another terminal, connect a client
 ```
 cd distributed_chat
-node client.js localhost <port2>
+node client.js localhost <port1>
 > join wizards
 > say hi, suggest a feature
 ```
