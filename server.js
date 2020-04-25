@@ -1,7 +1,7 @@
 
 var net = require('net');
 var readline = require('readline');
-var uuid4 = require("uuid/v4");
+var uuid4 = require("uuid").v4;
 var rl = readline.createInterface(process.stdin, process.stdout);
 
 
@@ -48,7 +48,7 @@ function onClientConnected(sock) {
       console.log("pushing message",remoteAddr,data);
       let id = genMIG();
       msg_list[id]=1;
-      pushMessage(sock,remoteAddr, id+"**@#@"+data);
+      pushMessage(sock,remoteAddr, id, data);
     }
   });
 
@@ -67,14 +67,14 @@ function onClientConnected(sock) {
   });
 };
 
-function pushMessage(src, addr, data,chn=""){
+function pushMessage(src, addr, id, data,chn=""){
   let ch = addr===""?chn:client_list[addr];
   if(ch in channel_list)
     for(sock of channel_list[ch])
       if(src!=sock)
         sock.write(data);
   for(p in peer_list)
-    peer_list[p].write(ch+"**@#@"+data);
+    peer_list[p].write(ch+"**@#@"+id+"**@#@"+data);
 }
 
 
@@ -97,8 +97,10 @@ function onServerConnected(sock) {
     let msg = data.split("**@#@");
     if(remoteAddr in peer_list){
       if( msg.length===3 && msg[0] in channel_list){
-        if(!(msg[1] in msg_list))
-        pushMessage("","",msg[2],msg[0]);
+        if(!(msg[1] in msg_list)){
+          pushMessage("","",msg[1],msg[2],msg[0]);
+          msg_list[msg[1]]=1;
+        }
         // for(sock of channel_list[msg[0]])
         //   sock.write(msg[1]);
       }
@@ -152,8 +154,10 @@ function addPeer(HOST, PORT){
     let msg = data.split("**@#@");
     if(remoteAddr in peer_list){
       if( msg.length===3 && msg[0] in channel_list){
-        if(!(msg[1] in msg_list))
-          pushMessage("","",msg[2],msg[0]);
+        if(!(msg[1] in msg_list)){
+          pushMessage("","",msg[1],msg[2],msg[0]);
+          msg_list[msg[1]]=1;
+        }
         // for(sock of channel_list[msg[0]])
         //   sock.write(msg[1]);
       }
