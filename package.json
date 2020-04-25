@@ -1,0 +1,16 @@
+{
+  "name": "distributed_chat",
+  "version": "0.0.1",
+  "description": "A distributed chat system",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Soumya Ghosh Dastidar",
+  "license": "ISC",
+  "dependencies": {
+    "readline-sync": "^1.4.10",
+    "uuid": "^7.0.3"
+  }
+}
