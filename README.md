@@ -11,7 +11,7 @@ git clone https://github.com/gdsoumya/distributed_chat
 cd distributed_chat
 yarn
 node server.js 0.0.0.0 <port1> <port2>
-> connect 13.245.17.210 8545 # our EC2 server in Cape Town
+> connect 13.245.17.210 8545 # connecting to peers, our EC2 server in Cape Town
 ```
 Port1 is used for client interaction while Port2 is used for peer interactions
 
