@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "readline-sync": "^1.4.10",
-    "uuid": "^7.0.3"
+    "uuid": "^7.0.3",
+    "ws": "^7.2.3"
   }
 }
