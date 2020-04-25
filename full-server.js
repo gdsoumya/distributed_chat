@@ -1,6 +1,6 @@
 /*
 
-FULL-SERVER : Only uses both TCP and WebSocket connection for peers thus any client can connect to this server.
+FULL-SERVER : Uses both TCP and WebSocket connection for peers thus any client can connect to this server.
 FULL-SERVERS can peer with other CLI-SERVERS, WEB-SERVERS and FULL-SERVERS
 
 */
