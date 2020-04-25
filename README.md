@@ -4,9 +4,9 @@ A simple distributed chat system, still under construction!
 In less than 300 lines total a distributed chat client with channels, a server that can manually peer with other servers and use rudimentary peer discovery to auto-connect with more peers. All clients connected to a specific channel can communicate even if they are connected to different servers, as long as the servers are peered together. 
 
 There are 3 types of Servers :
-1. CLI-SERVER : Only clients using CLI-CLient can connect to this server.
-2. WEBSOCK-SERVER : Only Browser clients or WEBSOCK-Client can connect to this server.
-3. FULL-SERVER : Any of the above clients can connect to this server.
+1. **CLI-SERVER** : Only clients using CLI-CLient can connect to this server.
+2. **WEBSOCK-SERVER** : Only Browser clients or WEBSOCK-Client can connect to this server.
+3. **FULL-SERVER**: Any of the above clients can connect to this server.
 
 Even if the servers are of different types they can be peered together ensuring that clients of any type can communicate with clients of any other type, eg : client on browser communicating with cli-clients or websock-clients and vice-versa.
 
@@ -24,7 +24,9 @@ npm install
 ```
 ### SERVER SETUP
 
-1. CLI-SERVER
+Depending on the requirement one can start up either a cli-server, websoc-server or a full-server, to start a server use the following command :
+
+**1. CLI-SERVER**
 ```
 node cli-server.js <ip> <port1> <port2>
 ```
@@ -32,7 +34,7 @@ node cli-server.js <ip> <port1> <port2>
 * port1 : Port used for cli-client connections
 * port2 : Port used for peer connections
 
-2. WEBSOCK-SERVER
+**2. WEBSOCK-SERVER**
 ```
 node websock-server.js <ip> <port1> <port2>
 ```
@@ -40,7 +42,7 @@ node websock-server.js <ip> <port1> <port2>
 * port1 : Port used for websock-client or browser connections
 * port2 : Port used for peer connections
 
-3. FULL-SERVER
+**3. FULL-SERVER**
 ```
 node full-server.js <ip> <port1> <port2> <port3>
 ```
