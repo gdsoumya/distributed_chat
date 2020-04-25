@@ -1,61 +1,99 @@
+/*
 
-// Port where we'll run the websocket server
-var webSocketServer = require('websocket').server;
-var http = require('http');
-var net = require('net');
-var readline = require('readline');
-var uuid4 = require("uuid").v4;
-var rl = readline.createInterface(process.stdin, process.stdout);
+WEB-SERVER : Only uses WebSocket connection for clients thus only browser clients or websocket-cli clients can connect to this server.
+WEB-SERVERS can peer with other CLI-SERVERS, WEB-SERVERS and FULL-SERVERS
+
+*/
 
 
-var args = process.argv.slice(2);
+// imports
+const webSocketServer = require('ws').Server;
+const net = require('net');
+const readline = require('readline');
+const uuid4 = require("uuid").v4;
+
+const rl = readline.createInterface(process.stdin, process.stdout);
+
+
+const args = process.argv.slice(2);
 
 // Configuration parameters
-var HOST = args[0];
-var PORT1 = args[1];
-var PORT2 = args[2];
+const HOST = args[0];
+const PORT1 = args[1];
+const PORT2 = args[2];
 
-var client_list={};
-var channel_list={};
-var peer_list={};
-var msg_list={};
-/**
- * Global variables
- */
-var client_list={};
-var channel_list={};
-var peer_list={};
-var msg_list={};
 
-var server = http.createServer(function(request, response) {});
+const client_list={};
+const channel_list={};
+const peer_list={};
+const msg_list={};
 
-server.listen(PORT1, function() {
-  console.log((new Date()) + " Server is listening on port "
-      + PORT1);
-});
-/**
- * WebSocket server
- */
-var wsServer = new webSocketServer({
-  httpServer: server
-});
+//UTIL Functions
 
-wsServer.on('request', function(request) {
-  //console.log((new Date()) + ' Connection from origin '+ request.origin + '.');
+//Read cmd input
+const sendCMD = ()=>{
+  rl.prompt();
+  rl.on('line', function(line) {
+      if (line === "exit"){
+        rl.close();
+        process.exit();
+      }
+      const cmd=line.split(" ");
+      if(cmd[0]==="connect" && cmd.length===3)
+        addPeer(cmd[1],cmd[2])
+      rl.prompt();
+  }).on('close',function(){
+      process.exit(0);
+  });
+};
 
-  var connection = request.accept(null, request.origin);
+// Peer List transfer
+const sendPeers = (sock, remoteAddr)=>{
+    setTimeout(()=>{
+      for(p in peer_list)
+          if(p!=remoteAddr)
+            sock.write("peer"+"**@#@"+p);
+    },1000)
+};
 
-  var id = connection.uuid = uuid4();
+//Gnerates unique message id
+const genMIG = ()=>{
+    const id = uuid4().replace("-","")+":"+new Date().getTime();
+    return id;
+};
 
-  console.log("client connected : ",connection.uuid)
-  connection.on('message', function(data) {
-    if (data.type === 'utf8') { 
-      data = data.utf8Data;
+//push messages
+const pushMessage = (src, cid, mid, data, chn="")=>{
+  const ch = cid===""?chn:client_list[cid];
+  if(ch in channel_list)
+    for(sock of channel_list[ch])
+      if(src!=sock)
+        sock.write(data);
+  for(p in peer_list)
+    if(p!=src)
+      peer_list[p].write(ch+"**@#@"+mid+"**@#@"+data);
+};
+
+//Listen for CMD Input
+sendCMD();
+
+
+const ws_server = new webSocketServer({host:HOST, port:PORT1});
+
+ws_server.on('connection', (connection)=>{
+
+  const id = uuid4();
+
+  connection.write=connection.send;
+ 
+  console.log("client connected : ", id)
+
+  connection.on('message', (data)=>{
       if(!(id in client_list)){
         let ch = data.split(" ");
         console.log(ch)
         if(ch.length!=2 || ch[0]!="join")
-          connection.sendUTF("Malformed");
+          connection.write("Malformed");
         else{
           client_list[id]=ch[1];
           if(ch[1] in channel_list)
@@ -63,75 +101,57 @@ wsServer.on('request', function(request) {
           else
             channel_list[ch[1]]=[connection];
           console.log('%s Says: %s', id, data);
-          connection.sendUTF("Connected to channel "+ch[1]);
+          connection.write("Connected to channel "+ch[1]);
         }
       }
       else{
         console.log("pushing message",id,data);
-        let mid = genMIG();
-        msg_list[id]=1;
+        const mid = genMIG();
+        msg_list[mid]=1;
         pushMessage(connection, id, mid, data);
       }
-    }
   });
   // user disconnected
-  connection.on('close', function(connection) {
+  connection.on('close', (conn)=>{
     console.log('connection from %s closed', id);
     if(id in client_list){
-      var ch = client_list[id];
-      let ind = channel_list[ch].indexOf(id);
+      const ch = client_list[id];
+      const ind = channel_list[ch].indexOf(id);
       channel_list[ch].splice(ind,1);
       delete client_list[id];
     }
   });
 });
 
-function pushMessage(src, addr, id, data,chn=""){
-  let ch = addr===""?chn:client_list[addr];
-  if(ch in channel_list)
-    for(sock of channel_list[ch])
-      if(src!=sock)
-        sock.sendUTF(data);
-  for(p in peer_list)
-    peer_list[p].write(ch+"**@#@"+id+"**@#@"+data);
-}
 
-// Create Server for peers
+// Server to handle Peer Connections
 
-var server2 = net.createServer(onServerConnected);
-
-server2.listen(PORT2, HOST, function() {
-  console.log('server listening on %j', server2.address());
-});
-
-function onServerConnected(sock) {
-  var remoteAddr = sock.remoteAddress;
+const onPeerConnected = (sock)=>{
+  let remoteAddr = sock.remoteAddress;
   console.log('new PEER connecting: %s', remoteAddr);
 
-  sock.on('data', function(data) {
+  sock.on('data', (data)=>{
     data = data.toString();
-    console.log("DATA FROM PEER "+data)
-    let msg = data.split("**@#@");
+    console.log("FROM PEER : ",remoteAddr, data)
+    const msg = data.split("**@#@");
     if(remoteAddr in peer_list){
-      if( msg.length===3 && msg[0] in channel_list){
+      if(msg.length===3){
         if(!(msg[1] in msg_list)){
-          pushMessage("","",msg[1],msg[2],msg[0]);
+          pushMessage(remoteAddr,"",msg[1],msg[2],msg[0]);
           msg_list[msg[1]]=1;
         }
-        // for(sock of channel_list[msg[0]])
-        //   sock.write(msg[1]);
       }
     }
     else if(msg.length===2 && msg[0]==="connect"){
         remoteAddr = remoteAddr+":"+msg[1];
         peer_list[remoteAddr]=sock;
         sock.write("ok");
-        console.log("Connected with : "+remoteAddr,Object.keys(peer_list));
+        console.log("Connected with : "+remoteAddr);
         sendPeers(sock,remoteAddr);
     }
     else if(msg.length===2 && msg[0]==="peer"){
       if(!(msg[1] in peer_list)){
-        let peer = msg[1].split(":");
+        const peer = msg[1].split(":");
         addPeer(peer[0],peer[1]);
       }
     }
@@ -141,53 +161,60 @@ function onServerConnected(sock) {
     }
   });
 
-  sock.on('close',  function () {
+  sock.on('close',  ()=>{
     console.log(remoteAddr+ " Disconnected");
     delete peer_list[remoteAddr];
     sock.destroy();
   });
 
-  sock.on('error', function (err) {
+  sock.on('error', (err)=>{
     console.log('Connection %s error: %s', remoteAddr, err.message);
   });
 };
 
+const peer_server = net.createServer(onPeerConnected);
+
+peer_server.listen(PORT2, HOST, ()=>{
+  console.log('server listening on %j', peer_server.address());
+});
 
 
 // ADD PEER
-function addPeer(HOST, PORT){
-  
-  var client = new net.Socket();
-  var remoteAddr = HOST.replace("localhost","127.0.0.1")+ ':' + PORT;
 
-  client.connect(PORT, HOST, function() {
-    console.log('Connecting to: ' + HOST + ':' + PORT);
+const addPeer = (HOST, PORT)=>{
+  
+  const client = new net.Socket();
+  
+  HOST = HOST.replace("localhost","127.0.0.1");
+
+  const remoteAddr = HOST+':'+ PORT; 
+  
+  client.connect(PORT, HOST, ()=>{
+    console.log('Connecting to: ' + remoteAddr);
     client.write('connect**@#@'+PORT2);
   });
    
-  client.on('data', function(data) {    
+  client.on('data', (data)=>{    
     data = data.toString();
-    console.log("FROM PEER: ",data);
-    let msg = data.split("**@#@");
+    console.log("FROM PEER: ",remoteAddr,data);
+    const msg = data.split("**@#@");
     if(remoteAddr in peer_list){
-      if( msg.length===3 && msg[0] in channel_list){
+      if( msg.length===3){
         if(!(msg[1] in msg_list)){
-          pushMessage("","",msg[1],msg[2],msg[0]);
+          pushMessage(remoteAddr,"",msg[1],msg[2],msg[0]);
           msg_list[msg[1]]=1;
         }
-        // for(sock of channel_list[msg[0]])
-        //   sock.write(msg[1]);
       }
       else if(msg.length===2 && msg[0]==="peer"){
         if(!(msg[1] in peer_list)){
-          let peer = msg[1].split(":");
+          const peer = msg[1].split(":");
           addPeer(peer[0],peer[1]);
         }
       }
     }else if(msg.length===1 && msg[0]==="ok"){
         peer_list[remoteAddr]=client;
         console.log("Connected with : "+remoteAddr,Object.keys(peer_list));
-        sendPeers(client);
+        sendPeers(client, remoteAddr);
     }
     else{
       client.write("error");
@@ -195,46 +222,14 @@ function addPeer(HOST, PORT){
     }
   });
 
-  client.on('close',  function () {
+  client.on('close',  ()=> {
     console.log(remoteAddr+ " Disconnected");
     delete peer_list[remoteAddr];
     client.destroy();
   });
 
-  client.on('error', function (err) {
+  client.on('error', (err)=>{
     console.log('Connection %s error: %s', remoteAddr, err.message);
   });
 
 };
-
-function sendCMD(){
-  rl.prompt();
-  rl.on('line', function(line) {
-      if (line === "exit"){
-        rl.close();
-        process.exit();
-      }
-      let cmd=line.split(" ");
-      if(cmd[0]==="connect" && cmd.length===3)
-        addPeer(cmd[1],cmd[2])
-      rl.prompt();
-  }).on('close',function(){
-      process.exit(0);
-  });
-}
-
-sendCMD();
-
-function sendPeers(sock, remoteAddr){
-    setTimeout(()=>{
-      for(p in peer_list)
-          if(p!=remoteAddr)
-            sock.write("peer"+"**@#@"+p);
-    },1000)
-}
-
-
-function genMIG(){
-    let id = uuid4().replace("-","")+":"+new Date().getTime();
-    return id;
-}
