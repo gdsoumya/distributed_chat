@@ -17,7 +17,7 @@ const rl = readline.createInterface(process.stdin, process.stdout);
 const args = process.argv.slice(2);
 
 // Configuration parameters
-const HOST = args[0];
+const HOST = args[0].replace("localhost","127.0.0.1");
 const PORT1 = args[1];
 const PORT2 = args[2];
 const PORT3 =args[3];
@@ -27,7 +27,10 @@ const channel_list={};
 const peer_list={};
 const msg_list={};
 
-//UTIL Functions
+
+//UTIL FUNCTIONS 
+
+//------------------------------------------------------------------------------------------------
 
 //Read cmd input
 const sendCMD = ()=>{
@@ -60,7 +63,7 @@ const sendPeers = (sock, remoteAddr)=>{
     setTimeout(()=>{
       for(p in peer_list)
           if(p!=remoteAddr)
-            sock.write("peer"+"**@#@"+p);
+            sock.write(`peer**@#@${p}`);
     },1000)
 };
 
@@ -72,18 +75,18 @@ const genMIG = ()=>{
 
 //push messages
 const pushMessage = (src, cid, mid, data, chn="")=>{
-  const ch = cid===""?chn:client_list[cid];
+  const ch = cid==="" ? chn : client_list[cid];
   if(ch in channel_list)
     for(sock of channel_list[ch])
       if(src!=sock)
         sock.write(data);
   for(p in peer_list)
     if(p!=src)
-      peer_list[p].write(ch+"**@#@"+mid+"**@#@"+data);
+      peer_list[p].write(`${ch}**@#@${mid}**@#@${data}`);
 };
 
 // Peer Data Handler Util
-const handleData = (sock, remoteAddr, data, type)=>{
+const handlePeerData = (sock, remoteAddr, data, type)=>{
   data = data.toString();
   console.log(`FROM PEER: ${remoteAddr} - ${data}`);
   const msg = data.split("**@#@");
@@ -119,56 +122,65 @@ const handleData = (sock, remoteAddr, data, type)=>{
   }
   return remoteAddr;
 };
+const handlePeerDisconnect = (sock, remoteAddr)=>{
+  console.log(`PEER Disconnected : ${remoteAddr}`);
+  delete peer_list[remoteAddr];
+  sock.destroy();
+}
 
-//Listen for CMD Input
-sendCMD();
+const handleClientData = (sock, data, id)=>{
+  data = data.toString();
+  if(!(id in client_list)){
+    const ch = data.split(" ");
+    if(ch.length!=2 || ch[0]!="join")
+      sock.write("Malformed");
+    else{
+      client_list[id]=ch[1];
+      if(ch[1] in channel_list)
+        channel_list[ch[1]].push(sock);
+      else
+        channel_list[ch[1]]=[sock];
+      console.log(`CLIENT ${id} Says: ${data}`);
+      sock.write(`Connected to channel ${ch[1]}`);
+    }
+  }
+  else{
+    console.log("pushing message",id,data);
+    const mid = genMIG();
+    msg_list[mid]=1;
+    pushMessage(sock,id, mid, data);
+  }
+};
 
-// WebSocket Server connected with http server
+const handleClientDisconnect = (id)=>{
+  console.log(`CLIENT disconnected : ${id}`);
+  if(id in client_list){
+    const ch = client_list[id];
+    const ind = channel_list[ch].indexOf(id);
+    channel_list[ch].splice(ind,1);
+    delete client_list[id];
+  }
+};
+
+//------------------------------------------------------------------------------------------------
+
+// WEBSOCK CLIENT Server
 
 const ws_server = new webSocketServer({host:HOST, port:PORT2});
+console.log(`CLIENT WEBSOCK Server listening on ${HOST}:${PORT2}`);
 
 ws_server.on('connection', (connection)=>{
 
   const id = uuid4();
-
   connection.write=connection.send;
- 
-  console.log("client connected : ", id)
 
-  connection.on('message', (data)=>{
-      if(!(id in client_list)){
-        let ch = data.split(" ");
-        console.log(ch)
-        if(ch.length!=2 || ch[0]!="join")
-          connection.write("Malformed");
-        else{
-          client_list[id]=ch[1];
-          if(ch[1] in channel_list)
-            channel_list[ch[1]].push(connection);
-          else
-            channel_list[ch[1]]=[connection];
-          console.log('%s Says: %s', id, data);
-          connection.write("Connected to channel "+ch[1]);
-        }
-      }
-      else{
-        console.log("pushing message",id,data);
-        const mid = genMIG();
-        msg_list[mid]=1;
-        pushMessage(connection, id, mid, data);
-      }
-  });
-  // user disconnected
-  connection.on('close', (conn)=>{
-    console.log('connection from %s closed', id);
-    if(id in client_list){
-      const ch = client_list[id];
-      const ind = channel_list[ch].indexOf(id);
-      channel_list[ch].splice(ind,1);
-      delete client_list[id];
-    }
-  });
+  console.log(`CLIENT-WEBSOCK connected: ${id}`);
+
+  connection.on('message', data=>handleClientData(connection, data,id));
+
+  connection.on('close', ()=>handleClientDisconnect(id));
 });
+
 
 // CLI Client Server
 
@@ -177,108 +189,67 @@ const onClientConnected = (sock)=>{
   //var id = sock.remoteAddress + ':' + sock.remotePort;
   const id = uuid4();
 
-  console.log(`client connected: ${id}`);
+  console.log(`CLIENT-CLI connected: ${id}`);
 
-  sock.on('data', (data)=>{
-    data = data.toString();
-    if(!(id in client_list)){
-      const ch = data.split(" ");
-      if(ch.length!=2 || ch[0]!="join")
-        sock.write("Malformed");
-      else{
-        client_list[id]=ch[1];
-        if(ch[1] in channel_list)
-          channel_list[ch[1]].push(sock);
-        else
-          channel_list[ch[1]]=[sock];
-        console.log('%s Says: %s', id, data);
-        sock.write("Connected to channel "+ch[1]);
-      }
-    }
-    else{
-      console.log("pushing message",id,data);
-      const mid = genMIG();
-      msg_list[mid]=1;
-      pushMessage(sock,id, mid, data);
-    }
-  });
+  sock.on('data', data=>handleClientData(sock, data,id));
 
-  sock.on('close',  ()=>{
-    console.log('connection from %s closed', id);
-    if(id in client_list){
-      const ch = client_list[id];
-      const ind = channel_list[ch].indexOf(id);
-      channel_list[ch].splice(ind,1);
-      delete client_list[id];
-    }
-  });
+  sock.on('close', ()=>handleClientDisconnect(id));
 
-  sock.on('error', (err)=>{
-    console.log('Connection %s error: %s', id, err.message);
-  });
+  sock.on('error', err=>console.log(`CLIENT ${id} error: ${err.message}`));
 };
 
 const cli_server = net.createServer(onClientConnected);
-
 cli_server.listen(PORT1, HOST, ()=>{
-  console.log('server listening on %j', cli_server.address());
+  console.log(`CLIENT CLI Server listening on ${HOST}:${PORT1}`);
 });
 
 
-// Server to handle Peer Connections
+// PEER SERVER
 
-const onPeerConnected = (sock)=>{
+const onPeerConnected = sock=>{
+  
   let remoteAddr = sock.remoteAddress;
   console.log(`PEER connecting: ${remoteAddr}`);
 
-  sock.on('data', (data)=>{
-    remoteAddr = handleData(sock, remoteAddr, data, 1); // remoteAddr is updated
+  sock.on('data', data=>{
+    remoteAddr = handlePeerData(sock, remoteAddr, data, 1); // remoteAddr is updated
   });
 
-  sock.on('close',  ()=>{
-    console.log(`PEER Disconnected : ${remoteAddr}`);
-    delete peer_list[remoteAddr];
-    sock.destroy();
-  });
+  sock.on('close', ()=>handlePeerDisconnect(sock, remoteAddr));
 
-  sock.on('error', (err)=>{
-    console.log(`PEER ${remoteAddr} error: ${err.message}`);
-  });
+  sock.on('error', err=>console.log(`PEER ${remoteAddr} error: ${err.message}`));
+
 };
 
 const peer_server = net.createServer(onPeerConnected);
-
 peer_server.listen(PORT3, HOST, ()=>{
-  console.log('server listening on %j', peer_server.address());
+  console.log(`PEER Server listening on ${HOST}:${PORT3}`);
 });
 
 
 // ADD PEER
-
 const addPeer = (host, port)=>{
-  
-  const client = new net.Socket();
-  host = host.replace("localhost","127.0.0.1");
 
+  host = host.replace("localhost","127.0.0.1");
   const remoteAddr = host+':'+ port; 
+
+  if(remoteAddr===`${HOST}:${PORT3}`)
+    return;
+
+  const client = new net.Socket();
   
   client.connect(port, host, ()=>{
     console.log(`PEER connecting: ${remoteAddr}`);
-    client.write('connect**@#@'+PORT3);
+    client.write(`connect**@#@${PORT3}`);
   });
    
-  client.on('data', (data)=>{    
-    handleData(client, remoteAddr, data, 2);
-  });
+  client.on('data', data=>handlePeerData(client, remoteAddr, data, 2));
 
-  client.on('close',  ()=> {
-    console.log(`PEER Disconnected : ${remoteAddr}`);
-    delete peer_list[remoteAddr];
-    client.destroy();
-  });
+  client.on('close', ()=>handlePeerDisconnect(client, remoteAddr));
 
-  client.on('error', (err)=>{
-    console.log(`PEER ${remoteAddr} error: ${err.message}`);
-  });
+  client.on('error', err=>console.log(`PEER ${remoteAddr} error: ${err.message}`));
 
 };
+
+//Listen for CMD Input
+sendCMD();

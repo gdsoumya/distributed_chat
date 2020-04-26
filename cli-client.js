@@ -22,11 +22,11 @@ const PORT = args[1];
 const client = new net.Socket();
 
 client.connect(PORT, HOST, ()=>{
-    console.log('Client connected to: ' + HOST + ':' + PORT);
+    console.log(`Client connected to: ${HOST}:${PORT}`);
 });
 
 client.on('data', (data)=>{
-    console.log('MSG: ' + data);
+    console.log(`MSG: ${data}`);
      if (data.toString().endsWith('exit')) {
        client.destroy();
     }

@@ -22,12 +22,12 @@ const PORT = args[1];
 const ws = new WebSocket(`ws://${HOST}:${PORT}`)
 
 ws.on('open', () => {
-	console.log('Client connected to: ' + HOST + ':' + PORT);
+	console.log(`Client connected to: ${HOST}:${PORT}`);
 	startChat();
 });
 
 ws.on('message', (data) => {
-  console.log('MSG: ' + data);
+    console.log(`MSG: ${data}`);
     if (data.toString().endsWith('exit')) {
        ws.close();
     }
