@@ -11,9 +11,6 @@ const net = require('net');
 const readline = require('readline');
 const uuid4 = require("uuid").v4;
 
-const rl = readline.createInterface(process.stdin, process.stdout);
-
-
 const args = process.argv.slice(2);
 
 // Configuration parameters
@@ -34,6 +31,7 @@ const msg_list={};
 
 //Read cmd input
 const sendCMD = ()=>{
+  const rl = readline.createInterface(process.stdin, process.stdout);
   rl.prompt();
   rl.on('line', function(line) {
       if (line === "exit"){
@@ -58,7 +56,7 @@ const sendCMD = ()=>{
   });
 };
 
-// Peer List transfer
+// Transfers peerlist to new peer
 const sendPeers = (sock, remoteAddr)=>{
     setTimeout(()=>{
       for(p in peer_list)
@@ -73,7 +71,7 @@ const genMIG = ()=>{
     return id;
 };
 
-//push messages
+//broadcast messages to clients and peers
 const pushMessage = (src, cid, mid, data, chn="")=>{
   const ch = cid==="" ? chn : client_list[cid];
   if(ch in channel_list)
@@ -85,7 +83,7 @@ const pushMessage = (src, cid, mid, data, chn="")=>{
       peer_list[p].write(`${ch}**@#@${mid}**@#@${data}`);
 };
 
-// Peer Data Handler Util
+
 const handlePeerData = (sock, remoteAddr, data, type)=>{
   data = data.toString();
   console.log(`FROM PEER: ${remoteAddr} - ${data}`);
@@ -122,6 +120,8 @@ const handlePeerData = (sock, remoteAddr, data, type)=>{
   }
   return remoteAddr;
 };
+
+
 const handlePeerDisconnect = (sock, remoteAddr)=>{
   console.log(`PEER Disconnected : ${remoteAddr}`);
   delete peer_list[remoteAddr];
