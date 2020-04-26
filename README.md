@@ -60,6 +60,13 @@ To connect to the peer-network, a server will need to peer with at least one ser
 * peer-ip : IP of Peer Server
 * peer-port : Port used by peer server for peer connections (`port2` in case of cli and websock servers and `port3` for full servers) 
 
+#### PEER LIST
+
+To view all connected peers use the following command in the Server CLI Promt:
+```
+> peers
+```
+
 ### CLIENT SETUP
 There are 2 clients : cli-client and websock-client each used for a different type of server. Both use the same command for connecting to the server :
 ```
