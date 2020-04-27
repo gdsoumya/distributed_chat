@@ -12,6 +12,8 @@ Even if the servers are of different types they can be peered together ensuring 
 
 A server can communicate with the network even if it is behind a NAT or Firewall, other peers may not be able to discover a server behind a NAT but as long as the server is peered to a public node/server all local clients connected to it will be able to communicate throughout the network.
 
+**No data is stored on the servers all messages recieved are propagated and forgotten. (Currently the messages are logged in Server prompt for debugging purposes but nothing is stored in the memory)**
+
 ## TRY IT OUT
 
 To try this out follow the steps
