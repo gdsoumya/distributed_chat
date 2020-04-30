@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <title>Web Socket Demo</title>
+  <style type="text/css">
+  	#chat, #input{
+  		display: none;
+  	}
+  </style>
+</head>
+<body>
+<form id="start">
+	<input type="text" id="server" placeholder="SERVER IP:PORT" />
+	<input type="text" id="uname" placeholder="USERNAME" />
+	<input type="text" id="cname" placeholder="CHANNEL NAME"/>
+	<button type="submit">Start Chat</button>
+</form>
+
+<ul id="chat"></ul>
+
+<form id="input">
+  <input type="text" id="message">
+  <br>
+  <button type="submit">Send</button>
+</form>
+
+<script src="main.js"></script>
+
+</body>
+</html>

@@ -82,7 +82,7 @@ node <type>-client.js <server-ip> <server-port>
 After connecting to the server the client needs to join a channel first before it can start chatting/communicating, to join a channel use the following command in the Client CLI Prompt :
 
 ```
-> join <channel-name>
+> join <channel-name> <username>
 ```
 * channel-name : Name of channel to join
 
