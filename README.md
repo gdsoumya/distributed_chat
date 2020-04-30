@@ -18,10 +18,10 @@ A server can communicate with the network even if it is behind a NAT or Firewall
 
 To try this out follow the steps, our test node can be used to try out the system.
 
-SERVER : capetown.arcology.nyc
-WEBSOCK-CLIENT/WEB CLIENT PORT : 8546
-CLI-CLIENT PORT : 8545
-PEER PORT : 30303
+SERVER : capetown.arcology.nyc<br>
+WEBSOCK-CLIENT/WEB CLIENT PORT : 8546<br>
+CLI-CLIENT PORT : 8545<br>
+PEER PORT : 30303<br>
 
 ### INTIAL SETUP
 ```
