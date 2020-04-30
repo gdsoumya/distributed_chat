@@ -2,11 +2,27 @@ const WebSocket = require('ws')
 const readline = require('readline');
 const rl = readline.createInterface(process.stdin, process.stdout);
 
+let uname="", channel="";
+
 const startChat = ()=>{
     rl.prompt();
     rl.on('line', function(line) {
-        if (line === "exit") rl.close();
-        ws.send(line)
+        if (line.toLowerCase() === "exit") rl.close();
+        const msg=line.split(" ");
+        if(channel==""){
+            if(msg.length===3 && msg[0].toLowerCase()==="join"){
+                
+                const data={type:"join",uname:msg[2], cname:msg[1]}
+                channel = msg[1];uname=msg[2];
+                console.log(`CHANNEL NAME : ${channel}  |   USERNAME : ${uname}`);
+                ws.send(JSON.stringify(data));
+            }else{
+                console.log("PLEASE JOIN A CHANNEL FIRST")
+            }
+        }else{
+            const data = {type:"msg", uname:uname, msg:line};
+            ws.send(JSON.stringify(data));
+        }
         rl.prompt();
     }).on('close',function(){
         process.exit(0);
@@ -27,10 +43,13 @@ ws.on('open', () => {
 });
 
 ws.on('message', (data) => {
-    console.log(`MSG: ${data}`);
-    if (data.toString().endsWith('exit')) {
-       ws.close();
-    }
+    data = JSON.parse(data)
+    if(data.type==="msg")
+        console.log(`${data['uname']}: ${data['msg']}`);
+    else if(data.type==="error")
+        console.log(`ERROR : ${data['msg']}`);
+    else if(data.type==="success")
+        console.log(`${data['msg']}`);
 });
 
 ws.on('close', ()=>{
