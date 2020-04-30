@@ -129,23 +129,29 @@ const handlePeerDisconnect = (sock, remoteAddr)=>{
 }
 
 const handleClientData = (sock, data, id)=>{
-  data = data.toString();
+  let ch=""
+  try{
+    ch = JSON.parse(data);
+  }
+  catch{
+      sock.write(JSON.stringify({type:"error", msg:"MALFORMED DATA"}));
+      return;
+  }
   if(!(id in client_list)){
-    const ch = data.split(" ");
-    if(ch.length!=2 || ch[0]!="join")
-      sock.write("Malformed");
+    if(ch.type!="join")
+      sock.write(JSON.stringify({type:"error", msg:"MALFORMED DATA"}));
     else{
-      client_list[id]=ch[1];
-      if(ch[1] in channel_list)
-        channel_list[ch[1]].push(sock);
+      client_list[id]=ch.cname;
+      if(ch.cname in channel_list)
+        channel_list[ch.cname].push(sock);
       else
-        channel_list[ch[1]]=[sock];
-      console.log(`CLIENT ${id} Says: ${data}`);
-      sock.write(`Connected to channel ${ch[1]}`);
+        channel_list[ch.cname]=[sock];
+      console.log(`CLIENT ${id} | UNAME : ${ch.uname} JOINED`);
+      sock.write(JSON.stringify({type:"success", msg:`Connected to channel ${ch.cname}`}));
     }
   }
-  else{
-    console.log("pushing message",id,data);
+  else if(ch.type==="msg"){
+    console.log("pushing message",id,ch.uname, ch.msg);
     const mid = genMIG();
     msg_list[mid]=1;
     pushMessage(sock,id, mid, data);
