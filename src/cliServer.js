@@ -1,29 +1,20 @@
 /*
 
-FULL-SERVER : Uses both TCP and WebSocket connection for peers thus any client can connect to this server.
-FULL-SERVERS can peer with other CLI-SERVERS, WEB-SERVERS and FULL-SERVERS
+CLI-SERVER : Only uses TCP connection thus only cli-clients can connect to this server.
+CLI-SERVERS can peer with other CLI-SERVERS, WEB-SERVERS and FULL-SERVERS
+
 
 */
 
 // imports
-const webSocketServer = require('ws').Server;
 const net = require('net');
 const readline = require('readline');
 const uuid4 = require("uuid").v4;
-
-const args = process.argv.slice(2);
-
-// Configuration parameters
-const HOST = args[0].replace("localhost","127.0.0.1");
-const PORT1 = args[1];
-const PORT2 = args[2];
-const PORT3 =args[3];
 
 const client_list={};
 const channel_list={};
 const peer_list={};
 const msg_list={};
-
 
 //UTIL FUNCTIONS 
 
@@ -170,24 +161,6 @@ const handleClientDisconnect = (id)=>{
 
 //------------------------------------------------------------------------------------------------
 
-// WEBSOCK CLIENT Server
-
-const ws_server = new webSocketServer({host:HOST, port:PORT2});
-console.log(`CLIENT WEBSOCK Server listening on ${HOST}:${PORT2}`);
-
-ws_server.on('connection', (connection)=>{
-
-  const id = uuid4();
-  connection.write=connection.send;
-
-  console.log(`CLIENT-WEBSOCK connected: ${id}`);
-
-  connection.on('message', data=>handleClientData(connection, data,id));
-
-  connection.on('close', ()=>handleClientDisconnect(id));
-});
-
-
 // CLI Client Server
 
 const onClientConnected = (sock)=>{
@@ -204,58 +177,64 @@ const onClientConnected = (sock)=>{
   sock.on('error', err=>console.log(`CLIENT ${id} error: ${err.message}`));
 };
 
-const cli_server = net.createServer(onClientConnected);
-cli_server.listen(PORT1, HOST, ()=>{
-  console.log(`CLIENT CLI Server listening on ${HOST}:${PORT1}`);
-});
+const cliServer = {}
 
+cliServer.CommandLineServer = ({ host, serverPeerPort, clientSocketPort }) => {
 
-// PEER SERVER
-
-const onPeerConnected = sock=>{
-  
-  let remoteAddr = sock.remoteAddress;
-  console.log(`PEER connecting: ${remoteAddr}`);
-
-  sock.on('data', data=>{
-    remoteAddr = handlePeerData(sock, remoteAddr, data, 1); // remoteAddr is updated
+  const cli_server = net.createServer(onClientConnected);
+  cli_server.listen(clientSocketPort, host, ()=>{
+    console.log(`CLIENT CLI Server listening on ${host}:${clientSocketPort}`);
   });
 
-  sock.on('close', ()=>handlePeerDisconnect(sock, remoteAddr));
 
-  sock.on('error', err=>console.log(`PEER ${remoteAddr} error: ${err.message}`));
+  // PEER SERVER
 
-};
-
-const peer_server = net.createServer(onPeerConnected);
-peer_server.listen(PORT3, HOST, ()=>{
-  console.log(`PEER Server listening on ${HOST}:${PORT3}`);
-});
-
-
-// ADD PEER
-const addPeer = (host, port)=>{
-
-  host = host.replace("localhost","127.0.0.1");
-  const remoteAddr = host+':'+ port; 
-
-  if(remoteAddr===`${HOST}:${PORT3}`)
-    return;
-
-  const client = new net.Socket();
-  
-  client.connect(port, host, ()=>{
+  const onPeerConnected = sock=>{
+    
+    let remoteAddr = sock.remoteAddress;
     console.log(`PEER connecting: ${remoteAddr}`);
-    client.write(`connect**@#@${PORT3}`);
+
+    sock.on('data', data=>{
+      remoteAddr = handlePeerData(sock, remoteAddr, data, 1); // remoteAddr is updated
+    });
+
+    sock.on('close', ()=>handlePeerDisconnect(sock, remoteAddr));
+
+    sock.on('error', err=>console.log(`PEER ${remoteAddr} error: ${err.message}`));
+
+  };
+
+  const peer_server = net.createServer(onPeerConnected);
+  peer_server.listen(serverPeerPort, host, ()=>{
+    console.log(`PEER Server listening on ${host}:${serverPeerPort}`);
   });
-   
-  client.on('data', data=>handlePeerData(client, remoteAddr, data, 2));
 
-  client.on('close', ()=>handlePeerDisconnect(client, remoteAddr));
 
-  client.on('error', err=>console.log(`PEER ${remoteAddr} error: ${err.message}`));
+  // ADD PEER
+  const addPeer = (host, port)=>{
 
-};
+    host = host.replace("localhost","127.0.0.1");
+    const remoteAddr = host+':'+ port; 
 
-//Listen for CMD Input
-sendCMD();
+    if(remoteAddr===`${host}:${serverPeerPort}`)
+      return;
+
+    const client = new net.Socket();
+    
+    client.connect(port, host, ()=>{
+      console.log(`PEER connecting: ${remoteAddr}`);
+      client.write(`connect**@#@${port}`);
+    });
+     
+    client.on('data', data=>handlePeerData(client, remoteAddr, data, 2));
+
+    client.on('close', ()=>handlePeerDisconnect(client, remoteAddr));
+
+    client.on('error', err=>console.log(`PEER ${remoteAddr} error: ${err.message}`));
+
+  };
+
+  //Listen for CMD Input
+  sendCMD();
+
+}
