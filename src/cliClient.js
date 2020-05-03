@@ -6,7 +6,7 @@ let uname="", channel="";
 
 const cli = {}
 
-cli.startChat = ()=>{
+cli.startChat = (client)=>{
     rl.prompt();
     rl.on('line', function(line) {
         if (line.toLowerCase() === "exit") rl.close();
@@ -60,7 +60,7 @@ cli.CommandLineClient = ({ host, port }) => {
   });
 
   client.on('connect', (data)=>{
-    startChat(); 
+    cli.startChat(client); 
   });
 
 }

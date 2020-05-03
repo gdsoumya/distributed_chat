@@ -19,10 +19,12 @@ connection.onerror = (error) => {
   console.error('failed to connect', error);
 };
 
-connection.onmessage = (event) => {
+connection.onmessage = async (event) => {
   console.log('received', event.data);
   let li = document.createElement('li');
-  const data = JSON.parse(event.data.toString());
+  // This is a Blob in the browser for some WebSocket messages
+  const jsonText = (event.data.text) ? await event.data.text() : event.data;
+  const data = JSON.parse(jsonText);
   if(data.type==="msg")
     li.innerText = data['uname']+" : "+data['msg']
   else
