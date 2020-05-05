@@ -4,7 +4,7 @@ FULL-SERVER : Uses both TCP and WebSocket connection for peers thus any client c
 FULL-SERVERS can peer with other CLI-SERVERS, WEB-SERVERS and FULL-SERVERS
 
 */
-const { FullServer } = require('..')
+const { Server } = require('..')
 
 const args = process.argv.slice(2);
 
@@ -14,4 +14,4 @@ const clientSocketPort    = args[1];
 const clientWebSocketPort = args[2];
 const serverPeerPort      = args[3];
 
-FullServer({ host, clientSocketPort, clientWebSocketPort, serverPeerPort });
+Server({ host, clientSocketPort, clientWebSocketPort, serverPeerPort });

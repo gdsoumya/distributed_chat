@@ -35,7 +35,7 @@ Depending on the requirement one can start up either a cli-server, websoc-server
 
 **1. CLI-SERVER**
 ```
-node cli-server.js <ip> <port1> <port2>
+node scripts/cliServer.js <ip> <port1> <port2>
 ```
 * ip : IP used by server to listen
 * port1 : Port used for cli-client connections
@@ -43,7 +43,7 @@ node cli-server.js <ip> <port1> <port2>
 
 **2. WEBSOCK-SERVER**
 ```
-node websock-server.js <ip> <port1> <port2>
+node scripts/websockServer.js <ip> <port1> <port2>
 ```
 * ip : IP used by server to listen
 * port1 : Port used for websock-client or browser connections
@@ -51,7 +51,7 @@ node websock-server.js <ip> <port1> <port2>
 
 **3. FULL-SERVER**
 ```
-node full-server.js <ip> <port1> <port2> <port3>
+node scripts/fullServer.js <ip> <port1> <port2> <port3>
 ```
 * ip : IP used by server to listen
 * port1 : Port used for cli-client connections
@@ -77,7 +77,7 @@ To view all connected peers use the following command in the Server CLI Promt:
 ### CLIENT SETUP
 There are 2 clients : cli-client and websock-client each used for a different type of server. Both use the same command for connecting to the server :
 ```
-node <type>-client.js <server-ip> <server-port>
+node scripts/<type>Client.js <server-ip> <server-port>
 ```
 * type : Type of client -  cli or websock
 * server-ip : IP of Server to connect
