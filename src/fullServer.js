@@ -9,7 +9,7 @@ FULL-SERVERS can peer with other CLI-SERVERS, WEB-SERVERS and FULL-SERVERS
 const webSocketServer = require('ws').Server;
 const net = require('net');
 const readline = require('readline');
-const uuid4 = require("uuid").v4;
+const uuid4 = require('uuid').v4;
 
 const cliServer = require('./cliServer');
 
@@ -85,7 +85,7 @@ server.FullServer = ({ host, serverPeerPort, clientSocketPort, clientWebSocketPo
   });
 
 
-    //Listen for CMD Input
+  //Listen for CMD Input
   sendCMD();
 }
 

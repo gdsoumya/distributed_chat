@@ -9,7 +9,8 @@
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "lint": "eslint -c .eslintrc.json --fix src"
   },
   "author": "Soumya Ghosh Dastidar",
   "license": "ISC",
