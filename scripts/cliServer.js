@@ -13,6 +13,8 @@ const host             = args[0];
 const clientSocketPort = args[1];
 const serverPeerPort   = args[2];
 
-const { CommandLineServer } = require('..')
+const { Server } = require('..')
 
-CommandLineServer({ host, clientSocketPort, serverPeerPort });
+// Passing in only clientSocketPort and not webSocketPort will only open a socket
+// to listen to normal command-line TCP clients.
+Server({ host, clientSocketPort, serverPeerPort });

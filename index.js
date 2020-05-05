@@ -1,9 +1,7 @@
 const cliClient = require('./src/cliClient')
-const cliServer = require('./src/cliServer')
-const fullServer = require('./src/fullServer')
+const server = require('./src/server')
 
 module.exports = {
   ...cliClient,
-  ...cliServer,
-  ...fullServer,
+  ...server,
 }
