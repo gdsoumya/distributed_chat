@@ -1,45 +1,49 @@
 const readline = require('readline');
 const rl = readline.createInterface(process.stdin, process.stdout);
 
-let uname='', channel='';
-
 const client = {}
 
-client.setUsername = (newUname) => {
-  uname = newUname;
-}
+client.BaseClient = class {
 
-client.getUsername = () => uname
+  constructor() {
+    this.uname = '';
+    this.channel = '';
+  }
 
-client.setChannel = (newChannel) => {
-  channel = newChannel;
-}
+  setUsername(newUname) {
+    this.uname = newUname;
+  }
 
-client.getChannel = () => channel
+  setChannel(newChannel) {
+    this.channel = newChannel;
+  }
 
-client.startChat = (send)=>{
-  rl.prompt();
-  rl.on('line', function(line) {
-    if (line.toLowerCase() === 'exit') rl.close();
-    const msg=line.split(' ');
-    if(channel==''){
-      if(msg.length===3 && msg[0].toLowerCase()==='join'){
-                
-        const data={type:'join',uname:msg[2], cname:msg[1]}
-        channel = msg[1];uname=msg[2];
-        console.log(`CHANNEL NAME : ${channel}  |   USERNAME : ${uname}`);
-        send(JSON.stringify(data));
-      }else{
-        console.log('PLEASE JOIN A CHANNEL FIRST')
-      }
-    }else{
-      const data = {type:'msg', uname:uname, msg:line};
-      send(JSON.stringify(data));
-    }
+  startChat(send) {
     rl.prompt();
-  }).on('close',function(){
-    process.exit(0);
-  });
+    rl.on('line', function(line) {
+      if (line.toLowerCase() === 'exit') rl.close();
+      const msg=line.split(' ');
+      if(this.channel==''){
+        if(msg.length===3 && msg[0].toLowerCase()==='join'){
+                  
+          const data={type:'join',uname:msg[2], cname:msg[1]}
+          this.channel = msg[1];
+          this.uname=msg[2];
+          console.log(`CHANNEL NAME : ${this.channel}  |   USERNAME : ${this.uname}`);
+          send(JSON.stringify(data));
+        }else{
+          console.log('PLEASE JOIN A CHANNEL FIRST')
+        }
+      }else{
+        const data = {type:'msg', uname:this.uname, msg:line};
+        send(JSON.stringify(data));
+      }
+      rl.prompt();
+    }).on('close',function(){
+      process.exit(0);
+    });
+  }
+
 }
 
 module.exports = client;
