@@ -20,16 +20,6 @@ client.WebSocketClient = class extends BaseClient {
       this.startChat(ws);
     });
 
-    ws.on('message', (data) => {
-      data = JSON.parse(data)
-      if(data.type==='msg')
-        console.log(`${data['uname']}: ${data['msg']}`);
-      else if(data.type==='error')
-        console.log(`ERROR : ${data['msg']}`);
-      else if(data.type==='success')
-        console.log(`${data['msg']}`);
-    });
-
     ws.on('close', ()=>{
       console.log('Client closed');
       process.exit();
