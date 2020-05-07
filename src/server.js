@@ -37,15 +37,7 @@ server.FullServer = class extends BaseServer {
       const ws_server = new webSocketServer({host, port:clientWebSocketPort});
 
       ws_server.on('connection', (connection)=>{
-
-        const id = uuid4();
-        connection.write=connection.send;
-
-        console.log(`CLIENT-WEBSOCK connected: ${id}`);
-
-        connection.on('message', data=> this.handleClientData(connection, data,id));
-
-        connection.on('close', ()=> this.handleClientDisconnect(id));
+        this.onClientConnected(connection, 2);
       });
 
     }
@@ -60,7 +52,9 @@ server.FullServer = class extends BaseServer {
 
     if (!clientSocketPort && !clientWebSocketPort) {
       throw Error('Please specify either clientSocketPort, clientWebSocketPort, or both.')
-    } else {
+    } 
+    else {
+      
       const peer_server = net.createServer(this.onPeerConnected.bind(this));
       peer_server.listen(serverPeerPort, host, ()=>{
         console.log(`PEER Server listening on ${host}:${serverPeerPort}`);

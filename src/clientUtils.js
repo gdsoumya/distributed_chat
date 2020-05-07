@@ -44,6 +44,16 @@ client.BaseClient = class {
     });
   }
 
+  handleServerData(data){
+     data = JSON.parse(data)
+      if(data.type==='msg')
+        return `${data['uname']}: ${data['msg']}`;
+      else if(data.type==='error')
+        return `ERROR : ${data['msg']}`;
+      else if(data.type==='success')
+        return `${data['msg']}`;
+    }
+
 }
 
 module.exports = client;

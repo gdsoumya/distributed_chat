@@ -21,13 +21,7 @@ client.WebSocketClient = class extends BaseClient {
     });
 
     ws.on('message', (data) => {
-      data = JSON.parse(data)
-      if(data.type==='msg')
-        console.log(`${data['uname']}: ${data['msg']}`);
-      else if(data.type==='error')
-        console.log(`ERROR : ${data['msg']}`);
-      else if(data.type==='success')
-        console.log(`${data['msg']}`);
+      console.log(this.handleServerData(data));
     });
 
     ws.on('close', ()=>{
@@ -48,14 +42,7 @@ client.WebSocketClient = class extends BaseClient {
    */
   addMessageListener(listener) {
     this.ws.on('message',  (data) => {
-      data = JSON.parse(data)
-      if (data.type==='msg') {
-        listener({ userName: data['uname'], message: data['msg'] });
-      } else if (data.type==='error') {
-        console.error(`ERROR : ${data['msg']}`);
-      } else if (data.type==='success') {
-        console.log(`${data['msg']}`);
-      }
+      listener(this.handleServerData(data));
     });
   }
 

@@ -27,6 +27,10 @@ const BaseServer = class {
     this.msg_list     = {};
   }
 
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
   // ADD PEER
   addPeer( _host, port ) {
 
@@ -41,7 +45,7 @@ const BaseServer = class {
     
     client.connect(port, host, ()=>{
       console.log(`PEER connecting: ${remoteAddr}`);
-      client.write(`connect**@#@${port}`);
+      client.write(`connect**@#@${this.serverPeerPort}`);
     });
      
     client.on('data', data => this.handlePeerData(client, remoteAddr, data, 2));
@@ -59,12 +63,13 @@ const BaseServer = class {
     rl.on('line', (line) => {
       if (line === 'exit'){
         rl.close();
-        process.exit();
+        process.exit(0);
       }
       const cmd = line.split(' ');
       if (cmd.length===3 && cmd[0]==='connect') {
-        this.addPeer( cmd[1], cmd[2] );
-      } else if (cmd.length===1 && cmd[0]==='peers'){
+        this.addPeer(cmd[1], cmd[2]);
+      } 
+      else if (cmd.length===1 && cmd[0]==='peers'){
         const peers=Object.keys(this.peer_list);
         if (peers.length > 0) {
           console.log(`CONENCTED PEERS (${peers.length}):`);
@@ -81,14 +86,13 @@ const BaseServer = class {
   }
 
   // Transfers peerlist to new peer
-  sendPeers(sock, remoteAddr) {
-    setTimeout(()=>{
+  async sendPeers(sock, remoteAddr) {
       for (let p in this.peer_list) {
         if (p!=remoteAddr) {
           sock.write(`peer**@#@${p}`);
+          await this.sleep(1000);
         }
       }
-    }, 1000);
   }
 
   //Gnerates unique message id
@@ -132,19 +136,23 @@ const BaseServer = class {
         if (!(msg[1] in this.peer_list)) {
           const peer = msg[1].split(':');
           this.addPeer(peer[0], peer[1]);
+          console.log("hello")
         }
       }
-    } else if ((type === 2) && (msg.length === 1) && (msg[0] === 'ok')) {
+    } 
+    else if ((type === 2) && (msg.length === 1) && (msg[0] === 'ok')) {
       this.peer_list[remoteAddr] = sock;
       console.log(`Connected with : ${remoteAddr}`);
       this.sendPeers(sock, remoteAddr);
-    } else if ((type === 1) && (msg.length === 2) && (msg[0] === 'connect')) {
+    } 
+    else if ((type === 1) && (msg.length === 2) && (msg[0] === 'connect')) {
       remoteAddr = remoteAddr+':'+msg[1];
       this.peer_list[remoteAddr] = sock;
       sock.write('ok');
       console.log(`Connected with : ${remoteAddr}`);
       this.sendPeers(sock, remoteAddr);
-    } else {
+    } 
+    else {
       console.log(`ERROR MSG : ${data}`);
       sock.write('error');
       sock.destroy();
@@ -217,13 +225,23 @@ const BaseServer = class {
 
   }
 
-  onClientConnected(sock) {
-    console.log(JSON.stringify(this));
+  onClientConnected(sock, type=1) {
+    //console.log(JSON.stringify(this));
+
     const id = uuid4();
+    let event="";
 
-    console.log(`CLIENT-CLI connected: ${id}`);
+    if(type===2){
+      sock.write=sock.send;
+      event="message";
+      console.log(`CLIENT-WEBSOCK connected: ${id}`);
+    }
+    else{
+      event="data"
+      console.log(`CLIENT-CLI connected: ${id}`);
+    }
 
-    sock.on('data', data=> this.handleClientData(sock, data,id));
+    sock.on(event, data=> this.handleClientData(sock, data,id));
 
     sock.on('close', ()=> this.handleClientDisconnect(id));
 

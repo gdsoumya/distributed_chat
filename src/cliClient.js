@@ -7,19 +7,14 @@ cli.CommandLineClient = class extends BaseClient {
   constructor({ host, port }) {
     super();
     const client = new net.Socket();
+    this.client = client;
 
     client.connect(port, host, ()=>{
       console.log(`Client connected to: ${host}:${port}`);
     });
 
     client.on('data', (data)=>{
-      data = JSON.parse(data)
-      if (data.type==='msg')
-        console.log(`${data['uname']}: ${data['msg']}`);
-      else if(data.type==='error')
-        console.log(`ERROR : ${data['msg']}`);
-      else if(data.type==='success')
-        console.log(`${data['msg']}`);
+      console.log(this.handleServerData(data));
     });
 
     // Add a 'close' event handler for the client socket
@@ -38,6 +33,17 @@ cli.CommandLineClient = class extends BaseClient {
     });
 
   }
+
+  /**
+   * Accept a callback listener of the form
+   * ({ userName, msg }) => { ... }
+   */
+  addMessageListener(listener) {
+    this.client.on('data',  (data) => {
+       listener(this.handleServerData(data));
+    });
+  }
+
 }
 
 module.exports = cli;
