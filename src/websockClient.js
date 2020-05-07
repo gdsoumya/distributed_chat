@@ -20,9 +20,12 @@ client.WebSocketClient = class extends BaseClient {
       this.startChat(ws);
     });
 
+
     ws.on('message', (data) => {
       console.log(this.handleServerData(data));
     });
+
+
 
     ws.on('close', ()=>{
       console.log('Client closed');
