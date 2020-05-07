@@ -56,17 +56,16 @@ server.FullServer = class extends BaseServer {
         console.log(`CLIENT CLI Server listening on ${host}:${clientSocketPort}`);
       });
 
-
-      const peer_server = net.createServer(this.onPeerConnected.bind(this));
-      peer_server.listen(serverPeerPort, host, ()=>{
-        console.log(`PEER Server listening on ${host}:${serverPeerPort}`);
-      });
-
     }
 
     if (!clientSocketPort && !clientWebSocketPort) {
       throw Error('Please specify either clientSocketPort, clientWebSocketPort, or both.')
     } else {
+      const peer_server = net.createServer(this.onPeerConnected.bind(this));
+      peer_server.listen(serverPeerPort, host, ()=>{
+        console.log(`PEER Server listening on ${host}:${serverPeerPort}`);
+      });
+
       this.sendCMD();
     }
   }
