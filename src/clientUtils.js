@@ -20,7 +20,7 @@ client.BaseClient = class {
 
   startChat(send) {
     rl.prompt();
-    rl.on('line', function(line) {
+    rl.on('line', (line) => {
       if (line.toLowerCase() === 'exit') rl.close();
       const msg=line.split(' ');
       if(this.channel==''){

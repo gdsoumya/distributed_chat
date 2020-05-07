@@ -14,4 +14,5 @@ const clientSocketPort    = args[1];
 const clientWebSocketPort = args[2];
 const serverPeerPort      = args[3];
 
-new FullServer({ host, clientSocketPort, clientWebSocketPort, serverPeerPort });
+const fs = new FullServer({ host, clientSocketPort, clientWebSocketPort, serverPeerPort });
+fs.addPeer('capetown.arcology.nyc', 30303);

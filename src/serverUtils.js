@@ -25,7 +25,6 @@ const BaseServer = class {
     this.channel_list = {};
     this.peer_list    = {};
     this.msg_list     = {};
-
   }
 
   // ADD PEER
@@ -57,7 +56,7 @@ const BaseServer = class {
   sendCMD() {
     const rl = readline.createInterface(process.stdin, process.stdout);
     rl.prompt();
-    rl.on('line', function(line) {
+    rl.on('line', (line) => {
       if (line === 'exit'){
         rl.close();
         process.exit();
@@ -217,6 +216,20 @@ const BaseServer = class {
     sock.on('error', err=>console.log(`PEER ${remoteAddr} error: ${err.message}`));
 
   }
+
+  onClientConnected(sock) {
+    console.log(JSON.stringify(this));
+    const id = uuid4();
+
+    console.log(`CLIENT-CLI connected: ${id}`);
+
+    sock.on('data', data=> this.handleClientData(sock, data,id));
+
+    sock.on('close', ()=> this.handleClientDisconnect(id));
+
+    sock.on('error', err=>console.log(`CLIENT ${id} error: ${err.message}`));
+  };
+
 
 };
 

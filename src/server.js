@@ -51,13 +51,13 @@ server.FullServer = class extends BaseServer {
     }
     
     if (clientSocketPort) {
-      const cli_server = net.createServer(this.onClientConnected);
+      const cli_server = net.createServer(this.onClientConnected.bind(this));
       cli_server.listen(clientSocketPort, host, ()=>{
         console.log(`CLIENT CLI Server listening on ${host}:${clientSocketPort}`);
       });
 
 
-      const peer_server = net.createServer(this.onPeerConnected);
+      const peer_server = net.createServer(this.onPeerConnected.bind(this));
       peer_server.listen(serverPeerPort, host, ()=>{
         console.log(`PEER Server listening on ${host}:${serverPeerPort}`);
       });
@@ -65,26 +65,12 @@ server.FullServer = class extends BaseServer {
     }
 
     if (!clientSocketPort && !clientWebSocketPort) {
-      console.error('Please specify either clientSocketPort, clientWebSocketPort, or both.')
+      throw Error('Please specify either clientSocketPort, clientWebSocketPort, or both.')
     } else {
       this.sendCMD();
     }
   }
   
-  onClientConnected(sock) {
-
-    //var id = sock.remoteAddress + ':' + sock.remotePort;
-    const id = uuid4();
-
-    console.log(`CLIENT-CLI connected: ${id}`);
-
-    sock.on('data', data=> this.handleClientData(sock, data,id));
-
-    sock.on('close', ()=> this.handleClientDisconnect(id));
-
-    sock.on('error', err=>console.log(`CLIENT ${id} error: ${err.message}`));
-  };
-
 }
 
 module.exports = server

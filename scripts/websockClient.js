@@ -5,4 +5,4 @@ const args = process.argv.slice(2);
 const HOST = args[0];
 const PORT = args[1];
 
-wsc = WebSocketClient({ host: HOST, port: PORT })
+const wsc = new WebSocketClient({ host: HOST, port: PORT })

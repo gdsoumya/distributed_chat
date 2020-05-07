@@ -17,4 +17,4 @@ const { FullServer } = require('..')
 
 // Passing in only clientSocketPort and not webSocketPort will only open a socket
 // to listen to normal command-line TCP clients.
-new FullServer({ host, clientWebSocketPort, serverPeerPort });
+const wsServer = new FullServer({ host, clientWebSocketPort, serverPeerPort });
