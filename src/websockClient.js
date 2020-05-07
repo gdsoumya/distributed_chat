@@ -11,7 +11,8 @@ client.WebSocketClient = class extends BaseClient {
 
     ws.on('open', () => {
       console.log(`Client connected to: ${host}:${port}`);
-      this.startChat(ws.send);
+      ws.write = ws.send;
+      this.startChat(ws);
     });
 
     ws.on('message', (data) => {

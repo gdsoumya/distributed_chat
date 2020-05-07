@@ -18,7 +18,7 @@ client.BaseClient = class {
     this.channel = newChannel;
   }
 
-  startChat(send) {
+  startChat(client) {
     rl.prompt();
     rl.on('line', (line) => {
       if (line.toLowerCase() === 'exit') rl.close();
@@ -30,13 +30,13 @@ client.BaseClient = class {
           this.channel = msg[1];
           this.uname=msg[2];
           console.log(`CHANNEL NAME : ${this.channel}  |   USERNAME : ${this.uname}`);
-          send(JSON.stringify(data));
+          client.write(JSON.stringify(data));
         }else{
           console.log('PLEASE JOIN A CHANNEL FIRST')
         }
       }else{
         const data = {type:'msg', uname:this.uname, msg:line};
-        send(JSON.stringify(data));
+        client.write(JSON.stringify(data));
       }
       rl.prompt();
     }).on('close',function(){

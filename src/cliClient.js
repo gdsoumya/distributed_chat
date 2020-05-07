@@ -34,7 +34,7 @@ cli.CommandLineClient = class extends BaseClient {
     });
 
     client.on('connect', ()=>{
-      this.startChat(client.write); 
+      this.startChat(client); 
     });
 
   }
