@@ -5,7 +5,7 @@ const cli = {}
 
 cli.CommandLineClient = class extends BaseClient {
   constructor({ host, port }) {
-    super();
+    super({ host, port });
     const client = new net.Socket();
     this.client = client;
 
@@ -31,8 +31,8 @@ cli.CommandLineClient = class extends BaseClient {
   }
 
   start() {
-    client.connect(port, host, ()=>{
-      console.log(`Client connected to: ${host}:${port}`);
+    this.client.connect(this.port, this.host, ()=>{
+      console.log(`Client connected to: ${this.host}:${this.port}`);
     });
   }
 
@@ -42,7 +42,7 @@ cli.CommandLineClient = class extends BaseClient {
    */
   addMessageListener(listener) {
     this.client.on('data',  (data) => {
-       listener(this.handleServerData(data));
+      listener(this.handleServerData(data));
     });
   }
 

@@ -87,12 +87,12 @@ const BaseServer = class {
 
   // Transfers peerlist to new peer
   async sendPeers(sock, remoteAddr) {
-      for (let p in this.peer_list) {
-        if (p!=remoteAddr) {
-          sock.write(`peer**@#@${p}`);
-          await this.sleep(1000);
-        }
+    for (let p in this.peer_list) {
+      if (p!=remoteAddr) {
+        sock.write(`peer**@#@${p}`);
+        await this.sleep(1000);
       }
+    }
   }
 
   //Gnerates unique message id
@@ -136,7 +136,7 @@ const BaseServer = class {
         if (!(msg[1] in this.peer_list)) {
           const peer = msg[1].split(':');
           this.addPeer(peer[0], peer[1]);
-          console.log("hello")
+          console.log('hello')
         }
       }
     } 
@@ -171,24 +171,28 @@ const BaseServer = class {
     let ch=''
     try {
       ch = JSON.parse(data);
-    } catch(e) {
+    }
+    catch(e) {
       sock.write(JSON.stringify({type:'error', msg:'MALFORMED DATA'}));
       return;
     }
     if (!(id in this.client_list)) {
       if (ch.type!='join') {
         sock.write(JSON.stringify({type:'error', msg:'MALFORMED DATA'}));
-      } else {
+      }
+      else {
         this.client_list[id]=ch.cname;
         if (ch.cname in this.channel_list) {
           this.channel_list[ch.cname].push(sock);
-        } else {
+        }
+        else {
           this.channel_list[ch.cname]=[sock];
         }
         console.log(`CLIENT ${id} | UNAME : ${ch.uname} JOINED`);
         sock.write(JSON.stringify({type:'success', msg:`Connected to channel ${ch.cname}`}));
       }
-    } else if (ch.type==='msg') {
+    }
+    else if (ch.type==='msg') {
       console.log('pushing message',id,ch.uname, ch.msg);
       const mid = this.genMIG();
       this.msg_list[mid]=1;
@@ -229,15 +233,15 @@ const BaseServer = class {
     //console.log(JSON.stringify(this));
 
     const id = uuid4();
-    let event="";
+    let event='';
 
     if(type===2){
       sock.write=sock.send;
-      event="message";
+      event='message';
       console.log(`CLIENT-WEBSOCK connected: ${id}`);
     }
     else{
-      event="data"
+      event='data'
       console.log(`CLIENT-CLI connected: ${id}`);
     }
 
@@ -246,7 +250,7 @@ const BaseServer = class {
     sock.on('close', ()=> this.handleClientDisconnect(id));
 
     sock.on('error', err=>console.log(`CLIENT ${id} error: ${err.message}`));
-  };
+  }
 
 
 };

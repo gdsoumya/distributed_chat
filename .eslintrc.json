@@ -19,6 +19,10 @@
       "error",
       2 
     ],
+    "brace-style": [
+      1,
+      "stroustrup"
+    ],
     "linebreak-style": [
       "error",
       "unix"

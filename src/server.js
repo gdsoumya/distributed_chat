@@ -11,7 +11,6 @@ const { BaseServer } = require('./serverUtils');
 // imports
 const webSocketServer = require('ws').Server;
 const net = require('net');
-const uuid4 = require('uuid').v4;
 
 //UTIL FUNCTIONS 
 

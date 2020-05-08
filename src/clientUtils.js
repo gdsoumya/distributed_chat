@@ -31,10 +31,12 @@ client.BaseClient = class {
           this.uname=msg[2];
           console.log(`CHANNEL NAME : ${this.channel}  |   USERNAME : ${this.uname}`);
           client.write(JSON.stringify(data));
-        }else{
+        }
+        else{
           console.log('PLEASE JOIN A CHANNEL FIRST')
         }
-      }else{
+      }
+      else{
         const data = {type:'msg', uname:this.uname, msg:line};
         client.write(JSON.stringify(data));
       }
@@ -45,14 +47,14 @@ client.BaseClient = class {
   }
 
   handleServerData(data){
-     data = JSON.parse(data)
-      if(data.type==='msg')
-        return `${data['uname']}: ${data['msg']}`;
-      else if(data.type==='error')
-        return `ERROR : ${data['msg']}`;
-      else if(data.type==='success')
-        return `${data['msg']}`;
-    }
+    data = JSON.parse(data)
+    if(data.type==='msg')
+      return `${data['uname']}: ${data['msg']}`;
+    else if(data.type==='error')
+      return `ERROR : ${data['msg']}`;
+    else if(data.type==='success')
+      return `${data['msg']}`;
+  }
 
 }
 
