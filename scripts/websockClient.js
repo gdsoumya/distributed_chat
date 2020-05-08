@@ -10,7 +10,5 @@ const wsc = new WebSocketClient({ host: HOST, port: PORT, WebSocket: ws });
 
 //Optional listener to retrieve data
 wsc.addMessageListener((data) => {
-  const { uname, msg } = data;
-  console.log(`username ${uname}`);
-  console.log(`msg ${msg}`);
+  console.log(JSON.stringify(data));
 });

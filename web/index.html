@@ -2,16 +2,20 @@
 <html lang="en" dir="ltr">
 <head>
   <meta charset="utf-8">
-  <title>Web Socket Demo</title>
+  <title>Dark Chat Web</title>
   <style type="text/css">
   	#chat, #input{
   		display: none;
   	}
+    body {
+      background: gray;
+      text-color: lightGray;
+    }
   </style>
 </head>
 <body>
+  <h1>Welcome to darkchat</h1>
 <form id="start">
-	<input type="text" id="server" placeholder="SERVER IP:PORT" />
 	<input type="text" id="uname" placeholder="USERNAME" />
 	<input type="text" id="cname" placeholder="CHANNEL NAME"/>
 	<button type="submit">Start Chat</button>
