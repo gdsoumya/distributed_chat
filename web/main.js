@@ -1,8 +1,8 @@
 let uname=""
 let connection=""
-const HOST_AND_PORT = "capetown.arcology.nyc:8546"
+const HOST_AND_PORT = "capetown.arcology.nyc:8547"
 const startConn = (url,data)=>{
-  connection = new WebSocket("ws://"+url);
+  connection = new WebSocket("wss://"+url);
   connection.onopen = () => {
   connection.send(JSON.stringify(data));
   let li = document.createElement('li');
