@@ -1,17 +1,16 @@
 const net = require('net');
-const { BaseClient } = require('./clientUtils')
+const { BaseClient, messageConsoleLogger } = require('./clientUtils')
 
 const cli = {}
 
 cli.CommandLineClient = class extends BaseClient {
   constructor({ host, port }) {
-    super({ host, port });
+    super();
+    this.host = host;
+    this.port = port;
+
     const client = new net.Socket();
     this.client = client;
-
-    client.on('data', (data)=>{
-      console.log(this.handleServerData(data));
-    });
 
     // Add a 'close' event handler for the client socket
     client.on('close', ()=>{
@@ -25,24 +24,29 @@ cli.CommandLineClient = class extends BaseClient {
     });
 
     client.on('connect', ()=>{
-      this.startChat(client); 
+      super.startChat(this.client); 
     });
 
   }
 
+  // Call start() after instantiating it
   start() {
+    // Add CLI TCP socket specific client logger and connection logic
+    this.addMessageListener(messageConsoleLogger);
     this.client.connect(this.port, this.host, ()=>{
       console.log(`Client connected to: ${this.host}:${this.port}`);
     });
+    // Then start up the REPL
+    //super.startChat();
   }
 
   /**
    * Accept a callback listener of the form
-   * ({ userName, msg }) => { ... }
+   * (JSON data) => { ... }
    */
   addMessageListener(listener) {
     this.client.on('data',  (data) => {
-      listener(this.handleServerData(data));
+      listener(data);
     });
   }
 

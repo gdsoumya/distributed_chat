@@ -2,6 +2,19 @@ const readline = require('readline');
 
 const client = {}
 
+client.messageConsoleLogger = (data) => {
+  data = JSON.parse(data);
+  if (data.type === 'msg') {
+    return `${data['uname']}: ${data['msg']}`;
+  }
+  else if (data.type === 'error') {
+    return `ERROR : ${data['msg']}`;
+  }
+  else if (data.type === 'success') {
+    return `${data['msg']}`;
+  }
+}
+
 client.BaseClient = class {
 
   constructor() {
@@ -44,16 +57,6 @@ client.BaseClient = class {
     }).on('close',function(){
       process.exit(0);
     });
-  }
-
-  handleServerData(data){
-    data = JSON.parse(data)
-    if(data.type==='msg')
-      return `${data['uname']}: ${data['msg']}`;
-    else if(data.type==='error')
-      return `ERROR : ${data['msg']}`;
-    else if(data.type==='success')
-      return `${data['msg']}`;
   }
 
 }

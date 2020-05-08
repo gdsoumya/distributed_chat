@@ -6,4 +6,5 @@ const args = process.argv.slice(2);
 const host = args[0];
 const port = args[1];
 
-new CommandLineClient({ host, port });
+const c = new CommandLineClient({ host, port });
+c.start();

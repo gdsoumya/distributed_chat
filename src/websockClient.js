@@ -20,13 +20,6 @@ client.WebSocketClient = class extends BaseClient {
       this.startChat(ws);
     });
 
-
-    ws.on('message', (data) => {
-      console.log(this.handleServerData(data));
-    });
-
-
-
     ws.on('close', ()=>{
       console.log('Client closed');
       process.exit();
@@ -39,14 +32,14 @@ client.WebSocketClient = class extends BaseClient {
 
   }
 
-  /**
-   * Accept a callback listener of the form
-   * ({ userName, msg }) => { ... }
-   */
   addMessageListener(listener) {
     this.ws.on('message',  (data) => {
-      listener(this.handleServerData(data));
+      listener(data);
     });
+  }
+
+  send(jsonData) {
+    ws.send(JSON.stringify(sendData));
   }
 
 }
