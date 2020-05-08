@@ -9,10 +9,6 @@ cli.CommandLineClient = class extends BaseClient {
     const client = new net.Socket();
     this.client = client;
 
-    client.connect(port, host, ()=>{
-      console.log(`Client connected to: ${host}:${port}`);
-    });
-
     client.on('data', (data)=>{
       console.log(this.handleServerData(data));
     });
@@ -32,6 +28,12 @@ cli.CommandLineClient = class extends BaseClient {
       this.startChat(client); 
     });
 
+  }
+
+  start() {
+    client.connect(port, host, ()=>{
+      console.log(`Client connected to: ${host}:${port}`);
+    });
   }
 
   /**

@@ -1,5 +1,4 @@
 const readline = require('readline');
-const rl = readline.createInterface(process.stdin, process.stdout);
 
 const client = {}
 
@@ -19,6 +18,7 @@ client.BaseClient = class {
   }
 
   startChat(client) {
+    const rl = readline.createInterface(process.stdin, process.stdout);
     rl.prompt();
     rl.on('line', (line) => {
       if (line.toLowerCase() === 'exit') rl.close();
