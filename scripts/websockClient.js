@@ -1,4 +1,4 @@
-const { WebSocketClient } = require('..');
+const { WebSocketClient, messageConsoleLogger } = require('..');
 const ws = require('ws');
 const args = process.argv.slice(2);
 
@@ -6,9 +6,7 @@ const args = process.argv.slice(2);
 const HOST = args[0];
 const PORT = args[1];
 
-const wsc = new WebSocketClient({ host: HOST, port: PORT, WebSocket: ws });
+const wsc = new WebSocketClient({ host: HOST, port: PORT, WebSocket: ws, useWSS: true });
 
 //Optional listener to retrieve data
-wsc.addMessageListener((data) => {
-  console.log(JSON.stringify(data));
-});
+wsc.addMessageListener(messageConsoleLogger);

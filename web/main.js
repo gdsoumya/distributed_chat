@@ -1,8 +1,8 @@
 let uname=""
 let connection=""
-const HOST_AND_PORT = "capetown.arcology.nyc:8547"
+const HOST_AND_PORT = "capetown.arcology.nyc:8546"
 const startConn = (url,data)=>{
-  connection = new WebSocket("wss://"+url);
+  connection = new WebSocket("ws://"+url);
   connection.onopen = () => {
   connection.send(JSON.stringify(data));
   let li = document.createElement('li');
@@ -12,8 +12,8 @@ const startConn = (url,data)=>{
   console.log('connected');
 };
 
-connection.onclose = () => {
-  console.error('disconnected');
+connection.onclose = (error) => {
+  console.error('disconnected', error);
   let li = document.createElement('li');
   li.innerText = "Disconnected From Server";
   document.querySelector('#chat').append(li);

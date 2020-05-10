@@ -2,16 +2,22 @@ const readline = require('readline');
 
 const client = {}
 
-client.messageConsoleLogger = (data) => {
-  data = JSON.parse(data);
+client.messageConsoleLogger = (_data) => {
+  //const data = JSON.parse(_data.toString ? _data.toString() : _data);
+  const data = JSON.parse(_data)
+  console.log('TYPE ' + data['type'])
+  const msg = (data['msg']['type'] === 'Buffer') ?
+    Buffer.from(data['msg']).toString() : JSON.stringify(data['msg'])
+
+  //console.log(_data);
   if (data.type === 'msg') {
-    return `${data['uname']}: ${data['msg']}`;
+    console.log(`${data['uname']}: ${msg}`);
   }
   else if (data.type === 'error') {
-    return `ERROR : ${data['msg']}`;
+    console.log(`ERROR : ${msg}`);
   }
   else if (data.type === 'success') {
-    return `${data['msg']}`;
+    console.log(`${msg}`);
   }
 }
 

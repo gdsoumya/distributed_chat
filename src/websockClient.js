@@ -8,10 +8,11 @@ const client = {}
  * an npm library like ws.
  */
 client.WebSocketClient = class extends BaseClient {
-  constructor({ host, port, WebSocket }) {
+  constructor({ host, port, WebSocket, useWSS }) {
     super();
 
-    const ws = new WebSocket(`ws://${host}:${port}`);
+    const scheme = (useWSS) ? 'wss' : 'ws'
+    const ws = new WebSocket(`${scheme}://${host}:${port}`);
     this.ws = ws;
 
     ws.on('open', () => {
