@@ -23,9 +23,12 @@ client.messageConsoleLogger = (_data) => {
 
 client.BaseClient = class {
 
-  constructor() {
+  constructor(connection, host, port) {
     this.uname = '';
     this.channel = '';
+    this.connection = connection;
+    this.host = host;
+    this.port = port;
   }
 
   setUsername(newUname) {
@@ -36,7 +39,15 @@ client.BaseClient = class {
     this.channel = newChannel;
   }
 
-  startChat(client) {
+  sendMessage(msg) {
+    return this.connection.write(JSON.stringify({
+      type  : 'msg',
+      msg   : msg,
+      uname : this.uname,
+    }))
+  }
+
+  startChat() {
     const rl = readline.createInterface(process.stdin, process.stdout);
     rl.prompt();
     rl.on('line', (line) => {
@@ -49,15 +60,14 @@ client.BaseClient = class {
           this.channel = msg[1];
           this.uname=msg[2];
           console.log(`CHANNEL NAME : ${this.channel}  |   USERNAME : ${this.uname}`);
-          client.write(JSON.stringify(data));
+          this.connection.write(JSON.stringify(data));
         }
         else{
           console.log('PLEASE JOIN A CHANNEL FIRST')
         }
       }
       else{
-        const data = {type:'msg', uname:this.uname, msg:line};
-        client.write(JSON.stringify(data));
+        this.sendMessage(line);
       }
       rl.prompt();
     }).on('close',function(){

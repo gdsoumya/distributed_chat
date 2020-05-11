@@ -5,25 +5,20 @@ const cli = {}
 
 cli.CommandLineClient = class extends BaseClient {
   constructor({ host, port }) {
-    super();
-    this.host = host;
-    this.port = port;
-
-    const client = new net.Socket();
-    this.client = client;
+    super(new net.Socket(), host, port);
 
     // Add a 'close' event handler for the client socket
-    client.on('close', ()=>{
+    this.connection.on('close', ()=>{
       console.log('Client closed');
       process.exit();
     });
     
-    client.on('error', (err)=>{
+    this.connection.on('error', (err)=>{
       console.error(err);
       process.exit();
     });
 
-    client.on('connect', ()=>{
+    this.connection.on('connect', ()=>{
       super.startChat(this.client); 
     });
 
@@ -33,7 +28,7 @@ cli.CommandLineClient = class extends BaseClient {
   start() {
     // Add CLI TCP socket specific client logger and connection logic
     this.addMessageListener(messageConsoleLogger);
-    this.client.connect(this.port, this.host, ()=>{
+    this.connection.connect(this.port, this.host, ()=>{
       console.log(`Client connected to: ${this.host}:${this.port}`);
     });
     // Then start up the REPL
@@ -45,7 +40,7 @@ cli.CommandLineClient = class extends BaseClient {
    * (JSON data) => { ... }
    */
   addMessageListener(listener) {
-    this.client.on('data',  (data) => {
+    this.connection.on('data',  (data) => {
       listener(data);
     });
   }
