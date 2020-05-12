@@ -10,7 +10,7 @@ jobs:
       - image: cryptogoth/node-circle-test:663bbd5
     steps:
       - checkout
-      - run: pwd && ls
+      - run: pwd && ls && yarn
       - run:
           command: . ~/.profile; node scripts/fullServer.js 127.0.0.1 8545 8546 30303
           background: true
