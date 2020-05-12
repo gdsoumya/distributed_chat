@@ -15,7 +15,7 @@ wsc.addMessageListener(messageConsoleLogger);
 // This is the default action for chats
 wsc.on('open', (ws) => {
 	console.log(`Client connected to: ${wsc.host}:${wsc.port}`);
-		wsc.startChat(ws);
+  wsc.startChat(ws);
 });
 
 wsc.on('close', ()=>{

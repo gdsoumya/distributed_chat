@@ -3,6 +3,26 @@ const { BaseClient, messageConsoleLogger } = require('./clientUtils')
 
 const cli = {}
 
+/**
+ * How to instantiate a CommandLineClient
+ *
+ * // Instantiate a new object (not started yet)
+ * const c = new CommandLineClient({ host, port })
+ *
+ * // Register any event handlers, especially the 'connect' event
+ * c.on('event', () => {
+ *   ...
+ * }
+ *
+ * // Register a message listener, which abstracts away the `data` event
+ * c.addMessageListener((data) => {
+ *   ...
+ * }
+ * 
+ * // Start the client, which opens the connections
+ * c.start()
+ *
+ */
 cli.CommandLineClient = class extends BaseClient {
   constructor({ host, port }) {
     super(new net.Socket(), host, port);
@@ -18,31 +38,23 @@ cli.CommandLineClient = class extends BaseClient {
       process.exit();
     });
 
-    this.connection.on('connect', ()=>{
-      super.startChat(this.client); 
-    });
-
   }
 
-  // Call start() after instantiating it
+  // CLI net clients can connect to a server separately after creating a connection.
   start() {
     // Add CLI TCP socket specific client logger and connection logic
-    this.addMessageListener(messageConsoleLogger);
     this.connection.connect(this.port, this.host, ()=>{
       console.log(`Client connected to: ${this.host}:${this.port}`);
     });
-    // Then start up the REPL
-    //super.startChat();
   }
 
   /**
-   * Accept a callback listener of the form
-   * (JSON data) => { ... }
+   * Add a message listener callback function of the form
+   * (jsonData) => { ... }
+   * The net library listens on the event called `data`
    */
   addMessageListener(listener) {
-    this.connection.on('data',  (data) => {
-      listener(data);
-    });
+    this.on('data', listener);
   }
 
 }

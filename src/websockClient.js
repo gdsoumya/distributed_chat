@@ -63,18 +63,17 @@ client.WebSocketClient = class extends BaseClient {
 		this.connection.write = this.connection.send;
   }
 
+  start() {
+  }
+
+  /**
+   * Add a message listener callback function of the form
+   * (jsonData) => { ... }
+   * The ws library, and the isomorphic shim above for Browser Websocket,
+   * listen on the event called `message`
+   */
   addMessageListener(listener) {
-    this.connection.on('message',  (data) => {
-      listener(data);
-    });
-  }
-
-  sendJsonData(jsonData) {
-    return this.connection.send(JSON.stringify(sendData));
-  }
-
-  on(eventName, cb) {
-    return this.connection.on(eventName, cb);
+    this.on('message', listener);
   }
 
 }
