@@ -3,7 +3,7 @@ const { BaseClient } = require('./clientUtils');
 const client = {}
 
 // A wrapper class so that Browser websocket behaves like websocket
-const WebWebSocket = class {
+const BrowserWebSocket = class {
  
   constructor(url, protocols, options) {
     this.connection = new window.WebSocket(url, protocols, options);
@@ -34,7 +34,7 @@ client.WebSocketClass = (() => {
   try {
     if ((typeof window !== undefined) && (typeof window.WebSocket !== undefined)) {
       console.log("Detected a browser, using browser WebSocket object");
-      return WebWebSocket;
+      return BrowserWebSocket;
     }
   } catch {
     // if window is not defined, fall through here
@@ -60,6 +60,8 @@ client.WebSocketClient = class extends BaseClient {
     ), host, port);
 
     // For clientUtils which will treat bare TCP sockets and WS the same
+    this.send = this.connection.send;
+    this.url = this.connection.url;
 		this.connection.write = this.connection.send;
   }
 

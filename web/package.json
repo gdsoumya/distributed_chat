@@ -10,6 +10,7 @@
     "@types/node": "^12.0.0",
     "@types/react": "^16.9.0",
     "@types/react-dom": "^16.9.0",
+    "chai": "^4.2.0",
     "darkchat": "file:..",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",

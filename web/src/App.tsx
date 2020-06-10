@@ -5,48 +5,69 @@ const { WebSocketClient } = require('darkchat');
 
 function App() {
 
-  const [mode, changeMode] = useState('joinChannel');
-  const [channel, setChannel] = useState('');
-  const [username, setUsername] = useState('');
+  const [mode           , changeMode         ] = useState('joinChannel');
+  const [channel        , setChannel         ] = useState('');
+  const [username       , setUsername        ] = useState('');
+  const [message        , setMessage         ] = useState('');
+  const [webSocketClient, setWebSocketClient ] = useState(null);
 
-  const wsc = new WebSocketClient({
-    host: 'capetown.arcology.nyc',
-    port: 8547,
-    useWSS: true,
-  });
-
-  wsc.on('close', (data: any) => {
-    console.error('disconnected', data);
+  const appendChat = (text: string) => {
     let li = document.createElement('li');
-    li.innerText = "Disconnected From Server";
+    li.innerText = text;
     const chat = document.querySelector('#chat')
     chat && chat.append(li);
-  });
+  }
 
-  wsc.on('error', (error: any) => {
-    console.error('failed to connect', error);
-  });
+  const registerWebSocketClient = ({username, channel}: {username: string, channel: string}) => {
+    const wsc = new WebSocketClient({
+      host: 'capetown.arcology.nyc',
+      port: 8547,
+      useWSS: true,
+    });
 
-  wsc.on('message', async (event : any) => {
-    console.log('received', event.data);
-    let li = document.createElement('li');
-    // This is a Blob in the browser for some WebSocket messages
-    const jsonText = (event.data.text) ? await event.data.text() : event.data;
-    const data = JSON.parse(jsonText);
-    const msg = data['msg'];
-    const isImage = msg.endsWith('jpg') || msg.endsWith('png') || msg.endsWith('gif');
-    if(data.type==="msg")
-      li.innerText = data['uname']+" : "+data['msg']
-    else
-      li.innerText = data["msg"]
-    const chat = document.querySelector('#chat')
-    chat && chat.append(li);
-    if (data['msg'].startsWith('http') && isImage) {
-      const img = document.createElement('img');
-      img.setAttribute('src', msg);
-      chat && chat.append(img);
-    }
-  });
+    wsc.on('close', (data: any) => {
+      console.error('disconnected', data);
+      let li = document.createElement('li');
+      li.innerText = "Disconnected From Server";
+      const chat = document.querySelector('#chat')
+      chat && chat.append(li);
+    });
+
+    wsc.on('error', (error: any) => {
+      console.error('failed to connect', error);
+    });
+
+    wsc.on('message', async (event : any) => {
+      console.log('received', event.data);
+      let li = document.createElement('li');
+      // This is a Blob in the browser for some WebSocket messages
+      const jsonText = (event.data.text) ? await event.data.text() : event.data;
+      const data = JSON.parse(jsonText);
+      const msg = data['msg'];
+      const isImage = msg.endsWith('jpg') || msg.endsWith('png') || msg.endsWith('gif');
+      if(data.type==="msg")
+        li.innerText = data['uname']+" : "+data['msg']
+      else
+        li.innerText = data["msg"]
+      const chat = document.querySelector('#chat')
+      chat && chat.append(li);
+      if (data['msg'].startsWith('http') && isImage) {
+        const img = document.createElement('img');
+        img.setAttribute('src', msg);
+        chat && chat.append(img);
+      }
+    });
+
+    wsc.on('open', () => {
+      wsc.send(JSON.stringify({
+        type: 'join', uname: username, cname: channel,
+      }));
+      appendChat(`Connected to ${wsc.url}`);
+      console.log('connected');
+    });
+
+    setWebSocketClient(wsc);
+  }
 
   return (
     <div className="App">
@@ -76,19 +97,10 @@ function App() {
               onClick={() => {
                 changeMode('chat');
 
-                wsc.on('open', () => {
-                  wsc.send(JSON.stringify({
-                    type: 'join', username: username, msg: channel,
-                  }));
-                  let li = document.createElement('li');
-                  li.innerText = `Connected to ${wsc.url}`;
-                  const chat = document.querySelector('#chat')
-                  chat && chat.append(li);
-
-                  console.log('connected');
-                });
-
-
+                registerWebSocketClient({
+                  username: username,
+                  channel: channel,
+                })
               }}
              >
                Start Chat
@@ -99,11 +111,17 @@ function App() {
             <ul id="chat"></ul>
 
             <form id="input">
-              <input type="text" id="message"></input>
+              <input type="text" id="message"
+                onChange={(evt) => setMessage(evt.target.value)}
+              ></input>
               <br/>
               <button
                 type="submit"
-                onClick={() => {}}
+                onClick={(evt) => {
+                  evt.preventDefault();
+                  appendChat(message);
+                  
+                }}
               >Send</button>
             </form>
           </div>
