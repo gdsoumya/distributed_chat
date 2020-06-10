@@ -9,7 +9,7 @@ function App() {
   const [channel        , setChannel         ] = useState('');
   const [username       , setUsername        ] = useState('');
   const [message        , setMessage         ] = useState('');
-  const [webSocketClient, setWebSocketClient ] = useState(null);
+  const [webSocketClient, setWebSocketClient ] = useState({ send: (data: string) => {throw new Error(data)}});
 
   const appendChat = (text: string) => {
     let li = document.createElement('li');
@@ -119,6 +119,11 @@ function App() {
                 type="submit"
                 onClick={(evt) => {
                   evt.preventDefault();
+                  if (webSocketClient) {
+                    webSocketClient.send(JSON.stringify({
+                      type: 'msg', uname: username, msg: message,
+                    }));
+                  }
                   appendChat(message);
                   
                 }}
