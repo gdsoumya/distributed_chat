@@ -23,10 +23,6 @@ const BrowserWebSocket = class {
     }
   }
 
-  send(data) {
-    return this.connection.send(data)
-  }
-
 }
 
 // Auto

@@ -3,7 +3,11 @@ import logo from './logo.svg';
 import './App.css';
 const { WebSocketClient } = require('darkchat');
 
-function App() {
+const wsc = new WebSocketClient({
+  host: 'capetown.arcology.nyc',
+  port: 8547,
+  useWSS: true,
+});
 
   const [mode           , changeMode         ] = useState('joinChannel');
   const [channel        , setChannel         ] = useState('');
@@ -79,12 +83,14 @@ function App() {
         </p>
 
         { (mode === 'joinChannel') ? (
-          <form id="start">
+          <form id="start" onSubmit={createConnection}>
             <input
               type="text"
               id="uname"
               placeholder="USERNAME"
-              onChange={(evt) => setUsername(evt.target.value)}
+              onChange={(evt) => {
+                setUsername(evt.target.value)
+              }}
             />
             <input
               type="text"
@@ -102,9 +108,8 @@ function App() {
                   channel: channel,
                 })
               }}
-             >
-               Start Chat
-             </button>
+            />
+            <button type="submit">Start Chat</button>
           </form>
         ) : ( 
           <div>
