@@ -100,7 +100,7 @@ node scripts/<type>Client.js <server-ip> <server-port>
 -   server-ip : IP of Server to connect
 -   server-port : Port used by server for client connections
 
-#### CLIENT JOIN CHANNEL
+#### CLIENT CONNECT
 
 To make a successful connection to a node/server you need to verify your identity (Key-Pair ownership), start the connection using
 
@@ -130,6 +130,8 @@ verify <signed_string_generated>
 
 If the verification is successfull the connection will be established else a **MALFORMED ERROR** error will be thrown.
 
+#### CLIENT CHANNEL COMMUNICATION
+
 After succesful connection to the server the client ncan join an no. of channels using the command :
 
 ```bash
@@ -146,11 +148,10 @@ eg.
 > <channel-name> this is a message from the client
 > user@<channel-name> -  message from channel to client
 ```
+#### CLIENT DIRECT COMMUNICATION
 
 The user can also send direct messages using the known publickey of another user :
 
 ```bash
 private <public_key_of_user2> hello world
 ```
-
-**A Malformed error will be thrown by the server if any message is sent before joining a channel.**
