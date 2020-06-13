@@ -132,7 +132,7 @@ If the verification is successfull the connection will be established else a **M
 
 #### CLIENT CHANNEL COMMUNICATION
 
-After succesful connection to the server the client ncan join an no. of channels using the command :
+After succesful connection to the server the client can join any no. of channels using the command :
 
 ```bash
 > join <channel-name> <username>
