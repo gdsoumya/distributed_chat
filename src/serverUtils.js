@@ -10,7 +10,8 @@ CLI-SERVERS can peer with other CLI-SERVERS, WEB-SERVERS and FULL-SERVERS
 const net = require('net');
 const readline = require('readline');
 const uuid4 = require('uuid').v4;
-
+const { TextEncoder } = require('text-encoder');
+const secp256k1 = require('secp256k1');
 //------------------------------------------------------------------------------------------------
 
 const BaseServer = class {
@@ -29,6 +30,22 @@ const BaseServer = class {
 		return new Promise((resolve) => setTimeout(resolve, ms));
 	}
 
+	getChallenge() {
+		return uuid4().replace('-', '').slice(0, 32);
+	}
+
+	verifyChallenge(challenge, solution, publicKey) {
+		try {
+			return secp256k1.ecdsaVerify(
+				Uint8Array.from(Buffer.from(solution, 'hex')),
+				new TextEncoder().encode(challenge),
+				Uint8Array.from(Buffer.from(publicKey, 'hex'))
+			);
+		} catch (err) {
+			console.log(err);
+			return false;
+		}
+	}
 	// ADD PEER
 	addPeer(_host, port) {
 		let host = _host.replace('localhost', '127.0.0.1');
@@ -96,18 +113,22 @@ const BaseServer = class {
 	}
 
 	//broadcast messages to clients and peers
-	pushMessage(src, cid, mid, data, chn = '') {
-		const ch = cid === '' ? chn : this.client_list[cid];
-		if (ch in this.channel_list) {
-			for (let sock of this.channel_list[ch]) {
-				if (src != sock) {
-					sock.write(data);
+	pushMessage(src, mid, data, chn = '') {
+		const jsonData = JSON.parse(data);
+		if (jsonData['private']) {
+			if (jsonData['private'] in this.client_list) this.client_list[jsonData['private']].write(data);
+		} else {
+			if (chn && chn in this.channel_list) {
+				for (let sock in this.channel_list[chn]) {
+					if (src != this.channel_list[chn][sock]) {
+						this.channel_list[chn][sock].write(data);
+					}
 				}
 			}
 		}
 		for (let p in this.peer_list) {
 			if (p != src) {
-				this.peer_list[p].write(`${ch}**@#@${mid}**@#@${data}`);
+				this.peer_list[p].write(`${chn}**@#@${mid}**@#@${data}`);
 			}
 		}
 	}
@@ -122,7 +143,7 @@ const BaseServer = class {
 		if (remoteAddr in this.peer_list) {
 			if (msg.length === 3) {
 				if (!(msg[1] in this.msg_list)) {
-					this.pushMessage(remoteAddr, '', msg[1], msg[2], msg[0]);
+					this.pushMessage(remoteAddr, msg[1], msg[2], msg[0]);
 					this.msg_list[msg[1]] = 1;
 				}
 			} else if (msg.length === 2 && msg[0] === 'peer') {
@@ -156,42 +177,61 @@ const BaseServer = class {
 		sock.destroy();
 	}
 
-	handleClientData(sock, data, id) {
+	handleClientData(sock, data, client) {
 		let ch = '';
 		try {
 			ch = JSON.parse(data);
+			if (!ch['pk']) throw 'malformed';
+			client.id = ch['pk'];
 		} catch (e) {
 			sock.write(JSON.stringify({ type: 'error', msg: 'MALFORMED DATA' }));
 			return;
 		}
-		if (!(id in this.client_list)) {
-			if (ch.type != 'join') {
-				sock.write(JSON.stringify({ type: 'error', msg: 'MALFORMED DATA' }));
+		if (!(client.id in this.client_list)) {
+			if (ch.type == 'connect') {
+				client.challenge = this.getChallenge();
+				sock.write(JSON.stringify({ type: 'verify', msg: client.challenge }));
+			} else if (
+				ch.type == 'verify' &&
+				client.challenge &&
+				this.verifyChallenge(client.challenge, ch.msg, client.id)
+			) {
+				this.client_list[client.id] = sock;
+				console.log(`CLIENT ${client.id} | UNAME : ${ch.uname} JOINED`);
+				sock.write(JSON.stringify({ type: 'success', msg: `Connected to Network` }));
 			} else {
-				this.client_list[id] = ch.cname;
-				if (ch.cname in this.channel_list) {
-					this.channel_list[ch.cname].push(sock);
-				} else {
-					this.channel_list[ch.cname] = [sock];
-				}
-				console.log(`CLIENT ${id} | UNAME : ${ch.uname} JOINED`);
-				sock.write(JSON.stringify({ type: 'success', msg: `Connected to channel ${ch.cname}` }));
+				sock.write(JSON.stringify({ type: 'error', msg: 'MALFORMED DATA' }));
 			}
+		} else if (ch.type == 'join') {
+			if (ch.cname in this.channel_list) {
+				this.channel_list[ch.cname][client.id] = sock;
+			} else {
+				this.channel_list[ch.cname] = {};
+				this.channel_list[ch.cname][client.id] = sock;
+			}
+			sock.write(JSON.stringify({ type: 'success', msg: `Connected to channel ${ch.cname}` }));
 		} else if (ch.type === 'msg') {
-			console.log('pushing message', id, ch.uname, ch.msg);
+			if (!ch.private && !ch.cname) return;
+			if (ch.cname && !(ch.cname in this.channel_list && client.id in this.channel_list[ch.cname])) {
+				sock.write(JSON.stringify({ type: 'error', msg: 'JOIN CHANNEL FIRST' }));
+				return;
+			}
+			console.log('pushing message', client.id, ch.uname, ch.msg);
 			const mid = this.genMIG();
 			this.msg_list[mid] = 1;
-			this.pushMessage(sock, id, mid, data);
+			this.pushMessage(sock, mid, data, ch.cname);
 		}
 	}
 
-	handleClientDisconnect(id) {
-		console.log(`CLIENT disconnected : ${id}`);
-		if (id in this.client_list) {
-			const ch = this.client_list[id];
-			const ind = this.channel_list[ch].indexOf(id);
-			this.channel_list[ch].splice(ind, 1);
-			delete this.client_list[id];
+	handleClientDisconnect(client) {
+		console.log(`CLIENT disconnected : ${client.id}`);
+		if (client.id in this.client_list) {
+			for (let ch in this.channel_list)
+				if (client.id in this.channel_list[ch]) {
+					delete this.channel_list[ch][client.id];
+					break;
+				}
+			delete this.client_list[client.id];
 		}
 	}
 
@@ -215,23 +255,23 @@ const BaseServer = class {
 	onClientConnected(sock, type = 1) {
 		//console.log(JSON.stringify(this));
 
-		const id = uuid4();
+		const client = { id: '', challenge: '' };
 		let event = '';
 
 		if (type === 2) {
 			sock.write = sock.send;
 			event = 'message';
-			console.log(`CLIENT-WEBSOCK connected: ${id}`);
+			console.log(`CLIENT-WEBSOCK new connection`);
 		} else {
 			event = 'data';
-			console.log(`CLIENT-CLI connected: ${id}`);
+			console.log(`CLIENT-CLI new connection`);
 		}
 
-		sock.on(event, (data) => this.handleClientData(sock, data, id));
+		sock.on(event, (data) => this.handleClientData(sock, data, client));
 
-		sock.on('close', () => this.handleClientDisconnect(id));
+		sock.on('close', () => this.handleClientDisconnect(client));
 
-		sock.on('error', (err) => console.log(`CLIENT ${id} error: ${err.message}`));
+		sock.on('error', (err) => console.log(`CLIENT ${client.id} error: ${err.message}`));
 	}
 };
 
