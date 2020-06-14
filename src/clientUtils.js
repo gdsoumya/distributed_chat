@@ -86,7 +86,8 @@ client.BaseClient = class {
 		const msg = line.split(' ');
 		if (msg[0].toLowerCase() === 'connect') this.sendMessage('connect');
 		else if (msg[0].toLowerCase() === 'sign' && msg.length == 2) console.log(this.genSignature(msg[1]));
-		else if (msg[0].toLowerCase() === 'verify' && msg.length == 2) this.sendMessage('verify', msg[1]);
+		else if (msg[0].toLowerCase() === 'verify' && msg.length == 2)
+			this.sendMessage('verify', this.genSignature(msg[1]));
 		else if (msg[0].toLowerCase() === 'private' && msg.length >= 3)
 			this.sendMessage('msg', msg.slice(2).join(' '), msg[1]);
 		else if (msg.length === 3 && msg[0].toLowerCase() === 'join') {
