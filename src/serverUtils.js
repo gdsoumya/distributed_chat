@@ -178,6 +178,7 @@ const BaseServer = class {
 	}
 
 	handleClientData(sock, data, client) {
+		console.log(data);
 		let ch = '';
 		try {
 			ch = JSON.parse(data);
@@ -212,6 +213,7 @@ const BaseServer = class {
 			sock.write(JSON.stringify({ type: 'success', msg: `Connected to channel ${ch.cname}` }));
 		} else if (ch.type === 'msg') {
 			if (!ch.private && !ch.cname) return;
+			if (ch.private) ch.cname = '';
 			if (ch.cname && !(ch.cname in this.channel_list && client.id in this.channel_list[ch.cname])) {
 				sock.write(JSON.stringify({ type: 'error', msg: 'JOIN CHANNEL FIRST' }));
 				return;
