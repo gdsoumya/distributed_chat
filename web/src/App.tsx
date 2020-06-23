@@ -1,9 +1,9 @@
-import React, { FunctionalComponent, useState } from 'react';
+import React, { FunctionComponent, useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
 const { WebSocketClient } = require('darkchat');
 
-const App: React.FunctionalComponent = () => {
+const App: React.FunctionComponent = () => {
 
   const [mode           , changeMode         ] = useState('joinChannel');
   const [channel        , setChannel         ] = useState('');
@@ -77,7 +77,7 @@ const App: React.FunctionalComponent = () => {
         <h1>Welcome to Darkchat</h1>
         <img src={logo} className="App-logo" alt="logo" />
         <p>
-          Edit <code>src/App.tsx</code> and save to reload.
+          To Enter a username and a channel to join below.
         </p>
 
         { (mode === 'joinChannel') ? (
@@ -98,7 +98,10 @@ const App: React.FunctionalComponent = () => {
             />
             <button
               type="submit"
-              onClick={() => {
+              onClick={(evt) => {
+                console.log("username", username)
+                console.log("channel", channel)
+                evt.preventDefault();
                 changeMode('chat');
 
                 registerWebSocketClient({
@@ -106,8 +109,9 @@ const App: React.FunctionalComponent = () => {
                   channel: channel,
                 })
               }}
-            />
-            <button type="submit">Start Chat</button>
+            >
+              Start Chat
+            </button>
           </form>
         ) : ( 
           <div>
