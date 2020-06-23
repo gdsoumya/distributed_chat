@@ -1,6 +1,6 @@
 {
   "name": "darkchat",
-  "version": "0.2.0",
+  "version": "0.2.3",
   "description": "A distributed chat system",
   "main": "index.js",
   "files": [
@@ -10,7 +10,7 @@
   "scripts": {
     "test": "mocha ./tests --trace-warnings --exit --colors --recursive --reporter spec -t 2000",
     "start": "node scripts/fullServer.js 127.0.0.1 8545 8546 30303",
-    "lint": "eslint -c .eslintrc.json --fix src/*.js web/src/*.ts*"
+    "lint": "eslint -c .eslintrc.json --fix src/*.js*"
   },
   "author": "Soumya Ghosh Dastidar",
   "license": "ISC",
