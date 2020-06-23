@@ -46,6 +46,7 @@ client.WebSocketClass = (() => {
     return ws;
   }
   catch(e) {
+    // if window is not defined, fall through here        
   }
 
   throw new Error('Neither Browser WebSocket object nor ws library found.');
@@ -62,24 +63,24 @@ client.WebSocketClient = class extends BaseClient {
 
     // For clientUtils which will treat bare TCP sockets and WS the same
     this.url = this.connection.url;
-	    const urlType = typeof(this.url);
-	    assert.equal( urlType, 'string',
-	        `url was not a string, instead ${urlType}`
-	    );
+    const urlType = typeof(this.url);
+    assert.equal( urlType, 'string',
+      `url was not a string, instead ${urlType}`
+    );
     this.connection.write = this.connection.send;
     this.send = this.connection.send;
-	    const sendType = typeof(this.send);
-	    assert.equal( sendType, 'function',
-	        `connection.send was not a function, instead ${sendType}`
-	    );
+    const sendType = typeof(this.send);
+    assert.equal( sendType, 'function',
+      `connection.send was not a function, instead ${sendType}`
+    );
   }
 
   /**
-	 * Add a message listener callback function of the form
-	 * (jsonData) => { ... }
-	 * The ws library, and the isomorphic shim above for Browser Websocket,
-	 * listen on the event called `message`
-	 */
+    * Add a message listener callback function of the form
+    * (jsonData) => { ... }
+    * The ws library, and the isomorphic shim above for Browser Websocket,
+    * listen on the event called `message`
+    */
   addMessageListener(listener) {
     this.on('message', listener);
   }
