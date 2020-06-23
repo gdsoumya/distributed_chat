@@ -28,6 +28,7 @@ client.messageConsoleLogger = (_data) => {
 };
 
 client.BaseClient = class {
+
   constructor(connection, host, port) {
     this.uname = '';
     this.channel = '';
@@ -105,9 +106,12 @@ client.BaseClient = class {
 
   /**
 	 * Open the connection and start responding to event listeners.
+   * Non-interactive, runnable in both tests and called by startChat.
 	 */
   start() {
-    throw new Error('Override start() method in subclass to open and setup your connection.');
+    console.log('Generating Key Pair....');
+    this.genKeyPair();
+    console.log('Your PUBLIC KEY : ', this.publicKey);
   }
 
   /**
@@ -121,9 +125,7 @@ client.BaseClient = class {
 	 * Register readline interactive REPL. (Don't use for tests)
 	 */
   startChat() {
-    console.log('Generating Key Pair....');
-    this.genKeyPair();
-    console.log('Your PUBLIC KEY : ', this.publicKey);
+    this.start()
     const rl = readline.createInterface(process.stdin, process.stdout);
     rl.prompt();
     rl.on('line', (line) => {
