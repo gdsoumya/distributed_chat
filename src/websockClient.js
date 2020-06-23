@@ -4,41 +4,48 @@ const client = {};
 
 // A wrapper class so that Browser websocket behaves like websocket
 const BrowserWebSocket = class {
-	constructor(url, protocols, options) {
-		this.connection = new window.WebSocket(url, protocols, options);
-		// TODO check whether Browser websocket supports protocols and options params like ws
-		this.url = url;
-	}
+  constructor(url, protocols, options) {
+    this.connection = new window.WebSocket(url, protocols, options);
+    // TODO check whether Browser websocket supports protocols and options params like ws
+    this.url = url;
+  }
 
-	on(event, cb) {
-		if (event === 'open') {
-			this.connection.onopen = cb;
-		} else if (event === 'close') {
-			this.connection.onclose = cb;
-		} else if (event === 'error') {
-			this.connection.onerror = cb;
-		} else if (event === 'message') {
-			this.connection.onmessage = cb;
-		}
-	}
+  on(event, cb) {
+    if (event === 'open') {
+      this.connection.onopen = cb;
+    }
+    else if (event === 'close') {
+      this.connection.onclose = cb;
+    }
+    else if (event === 'error') {
+      this.connection.onerror = cb;
+    }
+    else if (event === 'message') {
+      this.connection.onmessage = cb;
+    }
+  }
 };
 
 // Auto
 client.WebSocketClass = (() => {
-	try {
-		if (typeof window !== undefined && typeof window.WebSocket !== undefined) {
-			console.log('Detected a browser, using browser WebSocket object');
-			return BrowserWebSocket;
-		}
-	} catch {
-		// if window is not defined, fall through here
-	}
-	try {
-		const ws = require('ws');
-		return ws;
-	} catch {}
+  try {
+    if (typeof window !== undefined && typeof window.WebSocket !== undefined) {
+      console.log('Detected a browser, using browser WebSocket object');
+      return BrowserWebSocket;
+    }
+  }
+  catch(e) {
+    // if window is not defined, fall through here
+  }
+  try {
+    const ws = require('ws');
+    return ws;
+  }
+  catch(e) {
+    // if ws is not defined, fall through here
+  }
 
-	throw new Error('Neither Browser WebSocket object nor ws library found.');
+  throw new Error('Neither Browser WebSocket object nor ws library found.');
 })();
 
 /**
@@ -47,26 +54,26 @@ client.WebSocketClass = (() => {
  * an npm library like ws.
  */
 client.WebSocketClient = class extends BaseClient {
-	constructor({ host, port, protocols, options, useWSS }) {
-		super(new client.WebSocketClass(`${useWSS ? 'wss' : 'ws'}://${host}:${port}`, protocols, options), host, port);
+  constructor({ host, port, protocols, options, useWSS }) {
+    super(new client.WebSocketClass(`${useWSS ? 'wss' : 'ws'}://${host}:${port}`, protocols, options), host, port);
 
-		// For clientUtils which will treat bare TCP sockets and WS the same
-		this.send = this.connection.send;
-		this.url = this.connection.url;
-		this.connection.write = this.connection.send;
-	}
+    // For clientUtils which will treat bare TCP sockets and WS the same
+    this.send = this.connection.send;
+    this.url = this.connection.url;
+    this.connection.write = this.connection.send;
+  }
 
-	start() {}
+  start() {}
 
-	/**
+  /**
 	 * Add a message listener callback function of the form
 	 * (jsonData) => { ... }
 	 * The ws library, and the isomorphic shim above for Browser Websocket,
 	 * listen on the event called `message`
 	 */
-	addMessageListener(listener) {
-		this.on('message', listener);
-	}
+  addMessageListener(listener) {
+    this.on('message', listener);
+  }
 };
 
 module.exports = client;
