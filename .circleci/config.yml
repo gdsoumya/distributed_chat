@@ -7,7 +7,7 @@ notify:
 jobs:
   build:
     docker:
-      - image: cryptogoth/node-circle-test:663bbd5
+      - image: cryptogoth/node-circle-test:49c98b3
     steps:
       - checkout
       - run: pwd && ls && yarn
