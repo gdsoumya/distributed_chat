@@ -1,19 +1,17 @@
-import React, { useState } from 'react';
+import React, { FunctionalComponent, useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
 const { WebSocketClient } = require('darkchat');
 
-const wsc = new WebSocketClient({
-  host: 'capetown.arcology.nyc',
-  port: 8547,
-  useWSS: true,
-});
+const App: React.FunctionalComponent = () => {
 
   const [mode           , changeMode         ] = useState('joinChannel');
   const [channel        , setChannel         ] = useState('');
   const [username       , setUsername        ] = useState('');
   const [message        , setMessage         ] = useState('');
-  const [webSocketClient, setWebSocketClient ] = useState({ send: (data: string) => {throw new Error(data)}});
+  const [webSocketClient, setWebSocketClient ] = useState({ send: (data: string) => {
+    throw new Error(data)
+  }});
 
   const appendChat = (text: string) => {
     let li = document.createElement('li');
@@ -32,7 +30,7 @@ const wsc = new WebSocketClient({
     wsc.on('close', (data: any) => {
       console.error('disconnected', data);
       let li = document.createElement('li');
-      li.innerText = "Disconnected From Server";
+      li.innerText = 'Disconnected From Server';
       const chat = document.querySelector('#chat')
       chat && chat.append(li);
     });
@@ -49,10 +47,10 @@ const wsc = new WebSocketClient({
       const data = JSON.parse(jsonText);
       const msg = data['msg'];
       const isImage = msg.endsWith('jpg') || msg.endsWith('png') || msg.endsWith('gif');
-      if(data.type==="msg")
-        li.innerText = data['uname']+" : "+data['msg']
+      if(data.type==='msg')
+        li.innerText = data['uname']+' : '+data['msg']
       else
-        li.innerText = data["msg"]
+        li.innerText = data['msg']
       const chat = document.querySelector('#chat')
       chat && chat.append(li);
       if (data['msg'].startsWith('http') && isImage) {
@@ -83,7 +81,7 @@ const wsc = new WebSocketClient({
         </p>
 
         { (mode === 'joinChannel') ? (
-          <form id="start" onSubmit={createConnection}>
+          <form id="start">
             <input
               type="text"
               id="uname"

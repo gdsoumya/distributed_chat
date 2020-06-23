@@ -11,6 +11,7 @@ jobs:
     steps:
       - checkout
       - run: pwd && ls && yarn
+      - run: yarn lint
       - run:
           command: . ~/.profile; node scripts/fullServer.js 127.0.0.1 8545 8546 30303
           background: true
