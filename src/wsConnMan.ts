@@ -1,10 +1,18 @@
-const { BaseClient } = require('./clientUtils');
+'use strict'
+
+import { ConnectionManager } from './connMan'
+import WebSocket from 'ws'
+
 const { assert } = require('chai');
-const client = {};
 
 // A wrapper class so that Browser websocket behaves like websocket
 const BrowserWebSocket = class {
-  constructor(url, protocols, options) {
+
+  innerConnection: WebSocket
+  url: string
+  send: (data: string) => void
+
+  constructor(url: string, protocols: array, options: object) {
     // We manage an inner connection, so that we can decorate its event handlers below
     // to be consistent with ws library
     this.innerConnection = new window.WebSocket(url, protocols, options);
@@ -31,7 +39,7 @@ const BrowserWebSocket = class {
 };
 
 // Auto
-client.WebSocketClass = (() => {
+export const WebSocketClass: Class = (() => {
   try {
     if (typeof window !== undefined && typeof window.WebSocket !== undefined) {
       console.log('Detected a browser, using browser WebSocket object');
@@ -57,22 +65,24 @@ client.WebSocketClass = (() => {
  * to use, which may be the built-in browser one, or
  * an npm library like ws.
  */
-client.WebSocketClient = class extends BaseClient {
-  constructor({ host, port, protocols, options, useWSS }) {
-    super(new client.WebSocketClass(`${useWSS ? 'wss' : 'ws'}://${host}:${port}`, protocols, options), host, port);
+export class WebSocketConnectionManager extends ConnectionManager {
+
+  url: string
+  send: (data: string) => void
+
+  constructor({ host, port, protocols, options, useWSS }: {
+    host: string,
+    port: number,
+    protocols: any,
+    options: object,
+    useWSS: boolean,
+  }) {
+    super(new WebSocketClass(`${useWSS ? 'wss' : 'ws'}://${host}:${port}`, protocols, options), host, port);
 
     // For clientUtils which will treat bare TCP sockets and WS the same
     this.url = this.connection.url;
-    const urlType = typeof(this.url);
-    assert.equal( urlType, 'string',
-      `url was not a string, instead ${urlType}`
-    );
     this.connection.write = this.connection.send;
     this.send = this.connection.send;
-    const sendType = typeof(this.send);
-    assert.equal( sendType, 'function',
-      `connection.send was not a function, instead ${sendType}`
-    );
   }
 
   /**
@@ -81,9 +91,8 @@ client.WebSocketClient = class extends BaseClient {
      * The ws library, and the isomorphic shim above for Browser Websocket,
      * listen on the event called `message`
      */
-  addMessageListener(listener) {
+  addMessageListener(listener: (dataString: string) => void) {
+    console.log('Listener added', listener)
     this.on('message', listener);
   }
 };
-
-module.exports = client;

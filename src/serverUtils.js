@@ -193,9 +193,10 @@ const BaseServer = class {
       client.id = ch['pk'];
     }
     catch (e) {
-      sock.write(JSON.stringify({ type: 'error', msg: 'MALFORMED DATA' }));
+      sock.write(JSON.stringify({ type: 'error', msg: 'MALFORMED DATA: no pk member found' }));
       return;
     }
+    console.log('CH' + ch)
     if (!(client.id in this.client_list)) {
       if (ch.type == 'connect') {
         client.challenge = this.getChallenge();
@@ -211,7 +212,7 @@ const BaseServer = class {
         sock.write(JSON.stringify({ type: 'success', msg: 'Connected to Network' }));
       }
       else {
-        sock.write(JSON.stringify({ type: 'error', msg: 'MALFORMED DATA' }));
+        sock.write(JSON.stringify({ type: 'error', msg: 'MALFORMED DATA: bad sig verify' }));
       }
     }
     else if (ch.type == 'join') {
@@ -222,6 +223,7 @@ const BaseServer = class {
         this.channel_list[ch.cname] = {};
         this.channel_list[ch.cname][client.id] = sock;
       }
+      console.log('Client successfully joined ' + ch.cname)
       sock.write(JSON.stringify({ type: 'success', msg: `Connected to channel ${ch.cname}` }));
     }
     else if (ch.type === 'msg') {
@@ -234,6 +236,7 @@ const BaseServer = class {
       const mid = this.genMIG();
       this.msg_list[mid] = 1;
       this.pushMessage(sock, mid, data, ch.cname);
+      sock.write(JSON.stringify({ type: 'success', msg: 'MESSAGE SENT' }));
     }
   }
 
