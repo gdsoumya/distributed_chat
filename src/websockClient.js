@@ -76,11 +76,11 @@ client.WebSocketClient = class extends BaseClient {
   }
 
   /**
-     * Add a message listener callback function of the form
-     * (jsonData) => { ... }
-     * The ws library, and the isomorphic shim above for Browser Websocket,
-     * listen on the event called `message`
-     */
+    * Add a message listener callback function of the form
+    * (jsonData) => { ... }
+    * The ws library, and the isomorphic shim above for Browser Websocket,
+    * listen on the event called `message`
+    */
   addMessageListener(listener) {
     this.on('message', listener);
   }
