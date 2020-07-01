@@ -118,8 +118,9 @@ const BaseServer = class {
   //broadcast messages to clients and peers
   pushMessage(src, mid, data, chn = '') {
     const jsonData = JSON.parse(data);
-    if (jsonData['private']) {
-      if (jsonData['private'] in this.client_list) this.client_list[jsonData['private']].write(data);
+    const toPublicKey = jsonData['toPublicKey']
+    if (toPublicKey && toPublicKey in this.client_list) {
+      this.client_list[toPublicKey].write(data);
     }
     else {
       if (chn && chn in this.channel_list) {
@@ -189,11 +190,11 @@ const BaseServer = class {
     let ch = '';
     try {
       ch = JSON.parse(data);
-      if (!ch['pk']) throw 'malformed';
-      client.id = ch['pk'];
+      if (!ch['fromPublicKey']) throw 'no fromPublicKey member found';
+      client.id = ch['fromPublicKey'];
     }
     catch (e) {
-      sock.write(JSON.stringify({ type: 'error', msg: 'MALFORMED DATA' }));
+      sock.write(JSON.stringify({ type: 'error', msg: `MALFORMED DATA ${e.toString()}` }));
       return;
     }
     if (!(client.id in this.client_list)) {
@@ -211,7 +212,7 @@ const BaseServer = class {
         sock.write(JSON.stringify({ type: 'success', msg: 'Connected to Network' }));
       }
       else {
-        sock.write(JSON.stringify({ type: 'error', msg: 'MALFORMED DATA' }));
+        sock.write(JSON.stringify({ type: 'error', msg: `MALFORMED DATA: type ${ch.type} challenge ${ch.challenge}` }));
       }
     }
     else if (ch.type == 'join') {
@@ -225,7 +226,8 @@ const BaseServer = class {
       sock.write(JSON.stringify({ type: 'success', msg: `Connected to channel ${ch.cname}` }));
     }
     else if (ch.type === 'msg') {
-      if (!ch.private && !ch.cname) return;
+      // TODO: Message must be addressed to a private DM or channel, consider returning error message here.
+      if (!ch.toPublicKey && !ch.cname) return;
       if (ch.cname && !(ch.cname in this.channel_list && client.id in this.channel_list[ch.cname])) {
         sock.write(JSON.stringify({ type: 'error', msg: 'JOIN CHANNEL FIRST' }));
         return;

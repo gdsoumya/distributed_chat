@@ -1,7 +1,9 @@
 const readline = require('readline');
 const secp256k1 = require('secp256k1');
+const aesjs = require('aes-js');
 const { randomBytes } = require('crypto');
 const { TextEncoder } = require('text-encoder');
+const { assert } = require('chai');
 
 const client = {};
 
@@ -26,6 +28,38 @@ client.messageConsoleLogger = (_data) => {
     console.log(`VERIFY : ${msg}`);
   }
 };
+
+// Hashing x and y coordinate of ECC point together, for ECDH
+const hashfn = (x, y) => {
+  const pubKey = new Uint8Array(33)
+  pubKey[0] = (y[31] & 1) === 0 ? 0x02 : 0x03
+  pubKey.set(x, 1)
+  return pubKey
+}
+
+// AES CTR encrypt an arbitrary JSON object, using the given (derived) key
+client.encryptJSON = ({ jsonObj, key }) => {
+  const text = JSON.stringify(jsonObj)
+  const textBytes = aesjs.utils.utf8.toBytes(text)
+  assert.equal(key.length, 32, 'AES from shared ECDH key is wrong length')
+  const aesCtr = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(5))
+  const encryptedBytes = aesCtr.encrypt(textBytes)
+  const encryptedHexString = aesjs.utils.hex.fromBytes(encryptedBytes)
+  return encryptedHexString
+}
+
+client.decryptHexString = ({ encryptedHexString, key }) => {
+  const encryptedBytes = aesjs.utils.hex.toBytes(encryptedHexString);
+ 
+  // The counter mode of operation maintains internal state, so to
+  // decrypt a new instance must be instantiated.
+  const aesCtr = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(5));
+  const decryptedBytes = aesCtr.decrypt(encryptedBytes);
+ 
+  // Convert our bytes back into text
+  const decryptedText = aesjs.utils.utf8.fromBytes(decryptedBytes);
+  return decryptedText
+}
 
 client.BaseClient = class {
 
@@ -68,17 +102,46 @@ client.BaseClient = class {
     return Buffer.from(sigObj.signature).toString('hex');
   }
 
-  sendMessage(type, msg = '', dm = '') {
+  getSharedKeyAsBuffer(otherPublicKeyString) {
+    // This is the compressed x coordinate of the resulting ecdh point
+    // https://www.npmjs.com/package/secp256k1
+    const otherPubKey = Uint8Array.from(Buffer.from(otherPublicKeyString, 'hex'))
+    return secp256k1.ecdh(otherPubKey, this.privateKey, { hashfn }, Buffer.alloc(33))
+  }
+
+  sendMessage(msgObj) {
     return this.connection.write(
-      JSON.stringify({
-        type: type,
-        msg: msg,
-        uname: this.uname,
-        pk: this.publicKey,
-        private: dm,
-        cname: this.channel,
-      })
+      JSON.stringify(msgObj)
     );
+  }
+
+  constructAndSendMessage(type, msg = '', toPublicKey = '') {
+    const msgObj = this.constructMessage(type, msg, toPublicKey)
+    return this.sendMessage(msgObj)
+  }
+
+  constructMessage(type, msg = '', toPublicKey = '') {
+
+    let msgString = msg
+    let messageObj = {
+      type: type,
+      msg: msgString,
+      uname: this.uname,
+      fromPublicKey: this.publicKey,
+      toPublicKey,
+      cname: this.channel,
+    }
+    if (toPublicKey !== '') {
+      const toPubKeyBuffer = Uint8Array.from(Buffer.from(toPublicKey, 'hex'))
+      assert(secp256k1.publicKeyVerify(toPubKeyBuffer))
+      const sharedKey = Buffer.from(this.getSharedKeyAsBuffer(toPublicKey), 'hex')
+      // By convention, the first byte denotes whether coordinate is compressed or not
+      // We slice it off and just use the last 32 bytes
+      msgString = client.encryptJSON({ jsonObj: messageObj, key: sharedKey.slice(1) })
+      messageObj.msg = msgString
+    }
+
+    return messageObj;
   }
 
   on(eventName, cb) {
