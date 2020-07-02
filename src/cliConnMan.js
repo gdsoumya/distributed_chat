@@ -1,5 +1,5 @@
 const net = require('net');
-const { BaseClient } = require('./clientUtils');
+const { ConnectionManager } = require('./connMan');
 
 const cli = {};
 
@@ -23,7 +23,8 @@ const cli = {};
  * c.start()
  *
  */
-cli.CommandLineClient = class extends BaseClient {
+cli.CommandLineConnectionManager = class extends ConnectionManager {
+  
   constructor({ host, port }) {
     super(new net.Socket(), host, port);
 
