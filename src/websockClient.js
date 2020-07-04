@@ -82,7 +82,7 @@ client.WebSocketClient = class extends BaseClient {
     * listen on the event called `message`
     */
   addMessageListener(listener) {
-    this.on('message', listener);
+    this.on('message',(data)=>{ listener(data,this)});
   }
 };
 

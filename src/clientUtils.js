@@ -7,7 +7,7 @@ const { assert } = require('chai');
 
 const client = {};
 
-client.messageConsoleLogger = (_data) => {
+client.messageConsoleLogger = (_data, wsc) => {
   //const data = JSON.parse(_data.toString ? _data.toString() : _data);
   const data = JSON.parse(_data);
   // console.log('TYPE ' + data['type']);
@@ -15,7 +15,13 @@ client.messageConsoleLogger = (_data) => {
 
   //console.log(_data);
   if (data.type === 'msg') {
-    if (data['private']) console.log(`${data['uname']}:${data['pk']}:- ${msg}`);
+    if (data['toPublicKey']){
+      // ENCRYPTED DM - DECRYPTION THROWS ERROR
+      const sharedKey = Buffer.from(wsc.getSharedKeyAsBuffer(data['fromPublicKey']), 'hex')
+      console.log(sharedKey)
+      const decrypted_msg = client.decryptHexString({encryptedHexString:msg, key:sharedKey})
+      console.log(`${data['uname']}:${data['fromPublicKey']}:- ${decrypted_msg}`);
+    }
     else console.log(`${data['uname']}:${data['cname']}- ${msg}`);
   }
   else if (data.type === 'error') {
@@ -135,6 +141,7 @@ client.BaseClient = class {
       const toPubKeyBuffer = Uint8Array.from(Buffer.from(toPublicKey, 'hex'))
       assert(secp256k1.publicKeyVerify(toPubKeyBuffer))
       const sharedKey = Buffer.from(this.getSharedKeyAsBuffer(toPublicKey), 'hex')
+      console.log(sharedKey)
       // By convention, the first byte denotes whether coordinate is compressed or not
       // We slice it off and just use the last 32 bytes
       msgString = client.encryptJSON({ jsonObj: messageObj, key: sharedKey.slice(1) })
@@ -150,20 +157,20 @@ client.BaseClient = class {
 
   processLine(line) {
     const msg = line.split(' ');
-    if (msg[0].toLowerCase() === 'connect') this.sendMessage('connect');
+    if (msg[0].toLowerCase() === 'connect') this.constructAndSendMessage('connect');
     else if (msg[0].toLowerCase() === 'sign' && msg.length == 2) console.log(this.genSignature(msg[1]));
-    else if (msg[0].toLowerCase() === 'verify' && msg.length == 2) this.sendMessage('verify', msg[1]);
+    else if (msg[0].toLowerCase() === 'verify' && msg.length == 2) this.constructAndSendMessage('verify', this.genSignature(msg[1]));
     else if (msg[0].toLowerCase() === 'private' && msg.length >= 3)
-      this.sendMessage('msg', msg.slice(2).join(' '), msg[1]);
+      this.constructAndSendMessage('msg', msg.slice(2).join(' '), msg[1]);
     else if (msg.length === 3 && msg[0].toLowerCase() === 'join') {
       this.channel = msg[1];
       this.uname = msg[2];
-      this.sendMessage('join', '');
+      this.constructAndSendMessage('join', '');
       console.log(`CHANNEL NAME : ${this.channel}  |   USERNAME : ${this.uname}`);
     }
     else if (msg.length >= 2) {
       this.channel = msg[0];
-      this.sendMessage('msg', msg.slice(1).join(' '));
+      this.constructAndSendMessage('msg', msg.slice(1).join(' '));
     }
   }
 
