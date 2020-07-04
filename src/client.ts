@@ -2,49 +2,39 @@
 'use strict'
 
 import { List, Map } from 'immutable'
-const secp256k1 = require('secp256k1')
+import secp256k1 from 'secp256k1'
 const randombytes = require('randombytes')
-const { assert } = require('chai')
+import { assert } from 'chai'
 
 import { ConnectionManager } from './connMan'
 import { Stage } from './stage'
-import { Secp256k1PrivateKey, Secp256k1PublicKey, Secp256k1Signature } from './types'
+import { Secp256k1KeyPair, Secp256k1Signature } from './keys'
+import { StageChangeListener, DatumListener, JSONDatum, StageCreator } from './types'
 
 export class Client {
 
-  messageListeners: List<(data: string) => void>
-  stageChangeListeners: List<(oldStage: Stage, newStage: Stage) => void>
-  stages: Map<string,Stage>;
+  datumListeners: List<DatumListener>
+  stageChangeListeners: Map<string,StageChangeListener>
+  initialStageList: OrderedMap<string,Stage>
   currentStage: Stage;
-  connectionManager: ConnectionManager;
-  privateKey: Secp256k1PrivateKey;
-  publicKey: Secp256k1PublicKey;
+  connectionManager: ConnectionManager
+  keyPair: Secp256k1KeyPair
 
-  constructor(startStage: Stage, connectionManager: ConnectionManager) {
-    this.messageListeners = List([])
-    this.stageChangeListeners = List([])
-    this.stages = new Map({})
-    this.currentStage = startStage
+  constructor(initialStageCreators: List<StageCreator>, connectionManager: ConnectionManager) {
+    this.datumListeners = List([])
+    this.stageChangeListeners = Map({})
+
+    if (initialStageCreators.size() == 0) {
+      throw new Error('Clients must have at least one initial stage to start.')
+    }
+    this.initialStageList = initialStageList
+    this.currentStage = initialStageList.first()
+
     this.connectionManager = connectionManager
     // Register this client as the primary 'message' eventHandler for connection
-    this.connectionManager.addMessageListener(this.getConnectionListener())
+    this.connectionManager.addDatumListener(this.getDataStringListener())
 
-    while (true) { // eslint-disable-line no-constant-condition
-      const privKey = randombytes(32);
-      if (secp256k1.privateKeyVerify(privKey)) {
-        this.privateKey = Secp256k1PrivateKey(privKey);
-        break;
-      }
-    }
-    this.publicKey = Secp256k1PublicKey(secp256k1.publicKeyCreate(this.privateKey)).toString('hex');
-
-    assert(this.publicKey, 'No public key found')
-  }
-
-  genSignature(msg: string): Secp256k1Signature {
-    msg = new TextEncoder().encode(msg);
-    const sigObj = secp256k1.ecdsaSign(msg, this.privateKey);
-    return Buffer.from(sigObj.signature).toString('hex');
+    this.keyPair = new Secp256k1KeyPair()    
   }
 
   /**
@@ -61,26 +51,25 @@ export class Client {
       })
   }
 
-  enqueueMessage(message: DataJSON) {
-    this.currentStage.enqueueMessage(message)
+  enqueueDatum(datum: JSONDatum) {
+    this.currentStage.enqueueDatum(datum)
   }
 
-  addStageChangeListener(listener: (oldStage: Stage, newStage: Stage) => void) {
+  addStageChangeListener(newStageName: string, listener: StageChangeListener) {
     this.stageChangeListeners = this.stageChangeListeners.push(listener)
   }
      
-  addMessageListener(listener: (data: string) => void) {
-    this.messageListeners = this.messageListeners.push(listener)
+  addDatumListener(listener: DatumListener) {
+    this.datumListeners = this.datumListeners.push(listener)
   }
 
   // 
-  getConnectionListener(): (dataString: string) => void {
+  getDataStringListener(): (dataString: string) => void {
     return (dataString) => {
       console.log('Inside the primary message listener')
-      const dataJSON = JSON.parse(dataString)
+      const datum : JSONDatum = JSON.parse(dataString)
       try {
-        const newStage = this.currentStage.parseReplyToNextStage(dataJSON)
-        this.stages = this.stages.set(newStage.name, newStage)
+        const newStage = this.currentStage.parseReplyToNextStage(datum, this)
         this.stageChangeListeners.forEach((listener) => {
           listener(this.currentStage, newStage)
         })

@@ -2,7 +2,9 @@
 // for basic channel joining stages
 'use strict'
 
-const { PublicChannelClient, WebSocketConnectionManager, CONNECT_STAGE } = require('..')
+import {
+  PublicChannelClient, WebSocketConnectionManager, Stage
+} from '..'
 const { assert } = require('chai')
 
 describe('WebSocket clients', () => {
@@ -15,7 +17,7 @@ describe('WebSocket clients', () => {
   const client = new PublicChannelClient('wizards', 'iceking', wsConnMan)
 
   const client2 = new PublicChannelClient('wizards', 'abracadaniel', wsConnMan)
-  client2.addStageChangeListener((oldStage, newStage) => {
+  client2.addStageChangeListener((oldStage: Stage, newStage: Stage) => {
     console.log('old stage', oldStage)
     console.log('new stage', newStage)
   })

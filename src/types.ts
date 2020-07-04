@@ -1,34 +1,23 @@
+// Basic data types and utilities for darkchat
 'use strict'
 
-const secp256k1 = require('secp256k1')
-import { assert } from 'chai'
-import { WebSocket } from '@types/ws'
+import { Client } from './client'
+import { Stage } from './stage'
+import { Socket as TCPSocket } from 'net'
 
-export class Secp256k1PublicKey {
+export type integer = number & { __int__: void };
 
-	constructor(publicKey: string) {
-		assert.equal(publicKey.length, 66, `Public key had length ${publicKey.length} instead of 66`)
-		assert(secp256k1.publicKeyVerify(Uint8Array.from(Buffer.from(publicKey))),
-			`Invalid public key hex string ${publicKey}`)
-		return publicKey
-	}
-
+export interface JSONDatum {
+  type         : string;
+  fromPublicKey: string;
+  toPublicKey  : string | null;
+  msg          : string;
+  [key: string]: string | null;
 }
 
-export class Secp256k1PrivateKey {
+export type StageCreator = (parent: Client) => Stage
 
-	constructor(privateKey: string) {
-		assert.equal(privateKey.length, 64, `Public key had length ${privateKey.length} instead of 66`)
-		assert(secp256k1.privateKeyVerify(Uint8Array.from(Buffer.from(privateKey))),
-			`Invalid private key hex string ${privateKey})`
-			)
-		return privateKey
-	}
+export type StageChangeListener = (oldStage: Stage, newStage: Stage) => void
+export type DatumListener = (datum: JSONDatum) => void
 
-}
-
-export type DataJSON = {
-	[key: string]: string
-}
-
-export type Socket = WebSocket
+export type DarkChatSocket = WebSocket | TCPSocket

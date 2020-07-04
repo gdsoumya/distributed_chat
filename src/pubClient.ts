@@ -1,18 +1,47 @@
 'use strict'
 
-const { Client } = require('./client')
-const { Stage } = require('./stage')
+import { Client } from './client'
+import { Stage } from './stage'
+import { RequestChallengeStage } from './register.ts'
 const { List } = require('immutable')
 const { assert } = require('chai')
 
+
 const pubClients = {}
 
-pubClients.PublicChannelClient = class extends Client {
+export class PublicChannelClient extends Client {
+
+  channelName: string
+  userName: string
 	
   constructor(channelName, userName, connMan) {
-    super(new JoinStage(channelName, userName), connMan)
-    // TODO: Kludge!
-    // Attach the publicKey of this client to the first stage
+    super(List([new RequestChallengeStage(                        )
+      ['requestChallenge', RequestChallengeStage],
+      ['joinChannel'], new JoinChannelStage(channelName, userName, parent)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ++], 
+      ['publicMessage', PublicMessageStage],
+      ]))
     this.currentStage.publicKey = this.publicKey
     this.joinStage = this.currentStage
     this.messageStage = new PublicMessageStage(this.publicKey)
@@ -22,9 +51,9 @@ pubClients.PublicChannelClient = class extends Client {
 
 // Private classes for singletons
 
-const JoinStage = class extends Stage {
+export class JoinChannelStage extends Stage {
 
-  constructor(channelName, userName, parent) {
+  constructor(channelName: string, userName: string, parent: client) {
     super("Join Public Channel")
     this.channelName = channelName
     this.userName = userName

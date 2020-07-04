@@ -1,74 +1,27 @@
+
 'use strict'
 
-const { Client } = require('./client')
-const { Stage } = require('./stage')
-const { List } = require('immutable')
-const { assert } = require('chai')
+import { List, OrderedMap } from 'immutable'
+import { Secp256k1PublicKey } from './types'
+import { Client } from './client'
+import { Stage } from './stage'
+import { assert } from 'chai'
 
-const privClients = {}
-
-privClients.PrivateChannelClient = class extends Client {
+export class PrivateChannelClient extends Client {
 	
-  constructor(channelName, userName, connMan) {
-    super(new ConnectStage(), connMan)
-    this.connectStage = this.currentStage
+  constructor(
+    counterParty: Secp256k1Public,
+    connMan: ConnectionManager
+    ) {
+    super(connMan,
+      new OrderedMap([
+        ['connect', ConnectStage ],
+        ['privateMessage', PrivateMessageStage]
+        ]))
   }
 
 }
 
-// Private classes for singletons
-
-const ConnectStage = class extends Stage {
-
-  constructor() {
-    super("connect")
-    this.channelName = channelName
-    this.userName = userName
-  }
-
-  sendServerCommand(connectionManager) {
-    assert(this.publicKey)
-    connectionManager.sendJSON({
-      type: 'connect',
-      pubKey: this.publicKey,
-    })
-  }
-
-  // We are unlikely to ever get here.
-  // 
-  enqueueMessage(message) {
-    throw new Error("Finish connecting before sending messages")
-  }
-
-  parseReplyToNextStage(dataJSON, parent) {
-    if (dataJSON.type === 'verify') {
-      const challengeSig = parent.genSignature(challenge)
-      console.log("server success received, challengeSig ", challengeSig)
-      return new SignStage(challengeSig, parent.getPublicKey())
-    } else {
-      console.error("Received unexpected message", JSON.stringify(dataJSON))
-    }
-  }
-
-}
-
-const SignStage = class extends Stage {
-
-  constructor(challengeSig, publicKey) {
-    super("sign")
-    this.challengeSig = challengeSig
-    this.publicKey = publicKey
-  }
-
-  sendServerCommand(connectionManager) {
-    connectManager.sendJSON({
-      type: 'verify',
-      pubKey: this.publicKey,
-      msg: challengeSig,
-    })
-  }
-
-}
 
 const PrivateMessageStage = class extends Stage {
 

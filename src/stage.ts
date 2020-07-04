@@ -2,7 +2,7 @@
 
 import { Client } from './client'
 import { ConnectionManager } from './connMan'
-import { DataJSON } from './types'
+import { JSONDatum } from './types'
 
 export abstract class Stage {
 
@@ -12,14 +12,14 @@ export abstract class Stage {
     this.name = name
   }
 
-  start(connectionManager): void {
-    this.sendServerCommand(connectionManager)
+  start(connMan: ConnectionManager): void {
+    this.sendServerCommand(connMan: ConnectionManager)
   }
 
-  abstract sendServerCommand(cm: connectionManager): void
+  abstract sendServerCommand(connMan: connectionManager): void
 
-  abstract parseReplyToNextStage(dataJSON: DataJSON, parent: Client): void
+  abstract parseReplyToNextStage(datum: JSONDatum, parent: Client): void
 
-  abstract enqueueMessage(message: DataJSON): void
+  abstract enqueueDatum(datum: JSONDatum): void
 
 }

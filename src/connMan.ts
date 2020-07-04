@@ -3,9 +3,10 @@ const secp256k1 = require('secp256k1');
 const { randomBytes } = require('crypto');
 const { TextEncoder } = require('text-encoder');
 
-import { DataJSON, Secp256k1PublicKey } from './types'
+import { JSONDatum, DarkChatSocket, integer, DatumListener } from './types'
+import { Secp256k1PublicKey } from './keys'
 
-export const messageConsoleLogger = (_data: DataJSON): void => {
+export const messageConsoleLogger = (_data: JSONDatum): void => {
   //const data = JSON.parse(_data.toString ? _data.toString() : _data);
   const data = JSON.parse(_data);
   // console.log('TYPE ' + data['type']);
@@ -29,32 +30,32 @@ export const messageConsoleLogger = (_data: DataJSON): void => {
 
 export abstract class ConnectionManager {
 
-  connection: Socket
+  connection: DarkChatSocket
   host: string
-  port: number
+  port: integer
 
-  constructor(connection: Socket, host: string, port: number) {
+  constructor(connection: DarkChatSocket, host: string, port: number) {
     this.connection = connection;
     this.host = host;
     this.port = port;
   }
 
-  abstract addMessageListener(listener: (msg: DataJSON) => void)
+  abstract addDatumListener(listener: DatumListener)
 
-  sendJSON({ type, channelName, userName, pubKey='', msg = '', dm = ''}: { 
+  sendDatum({ type, channelName, userName, fromPublicKey=null, msg = '', toPublicKey=null}: { 
     type: string,
     channelName: string,
     userName: string,
-    pubKey: Secp256k1PublicKey,
+    fromPublicKey: Secp256k1PublicKey | null,
     msg: string,
-    dm: string,
+    toPublicKey: Secp256k1PublicKey | null,
   } ): void {
     const jsonString = JSON.stringify({
-      type: type,
-      msg: msg,
+      type,
+      msg,
       uname: userName,
-      pk: pubKey,
-      private: dm,
+      fromPublicKey,
+      toPublicKey,
       cname: channelName,
     })
     console.log(jsonString)

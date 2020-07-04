@@ -12,7 +12,7 @@ const BrowserWebSocket = class {
   url: string
   send: (data: string) => void
 
-  constructor(url: string, protocols: array, options: object) {
+  constructor(url: string, protocols: any, options: object) {
     // We manage an inner connection, so that we can decorate its event handlers below
     // to be consistent with ws library
     this.innerConnection = new window.WebSocket(url, protocols, options);
@@ -39,7 +39,7 @@ const BrowserWebSocket = class {
 };
 
 // Auto
-export const WebSocketClass: Class = (() => {
+export const WebSocketClass: class = (() => {
   try {
     if (typeof window !== undefined && typeof window.WebSocket !== undefined) {
       console.log('Detected a browser, using browser WebSocket object');
