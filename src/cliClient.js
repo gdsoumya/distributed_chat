@@ -53,7 +53,7 @@ cli.CommandLineClient = class extends BaseClient {
 	 * The net library listens on the event called `data`
 	 */
   addMessageListener(listener) {
-    this.on('data', listener);
+    this.on('message',(data)=>{ listener(data,this)});
   }
 };
 
