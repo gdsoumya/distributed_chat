@@ -40,7 +40,7 @@ describe('Encrypted direct messages', () => {
 
       })
 
-      wsc.start() 
+      wsc.init() 
       assert.equal( typeof(wsc.publicKey), 'string',
           `Client public key was not a string, instead ${typeof(wsc.publicKey)}`
           )

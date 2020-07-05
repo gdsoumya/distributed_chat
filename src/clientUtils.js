@@ -11,14 +11,13 @@ client.messageConsoleLogger = (_data, wsc) => {
   //const data = JSON.parse(_data.toString ? _data.toString() : _data);
   const data = JSON.parse(_data);
   // console.log('TYPE ' + data['type']);
-  const msg = data['msg']['type'] === 'Buffer' ? Buffer.from(data['msg']).toString() : JSON.stringify(data['msg']);
+  let msg = data['msg']['type'] === 'Buffer' ? Buffer.from(data['msg']).toString() : JSON.stringify(data['msg']);
 
   //console.log(_data);
   if (data.type === 'msg') {
     if (data['toPublicKey']){
-      // ENCRYPTED DM - DECRYPTION THROWS ERROR
-      const sharedKey = Buffer.from(wsc.getSharedKeyAsBuffer(data['fromPublicKey']), 'hex')
-      console.log(sharedKey)
+      msg = data['msg']
+      const sharedKey = Buffer.from(wsc.getSharedKeyAsBuffer(data['fromPublicKey']).slice(1))
       const decrypted_msg = client.decryptHexString({encryptedHexString:msg, key:sharedKey})
       console.log(`${data['uname']}:${data['fromPublicKey']}:- ${decrypted_msg}`);
     }
@@ -141,7 +140,6 @@ client.BaseClient = class {
       const toPubKeyBuffer = Uint8Array.from(Buffer.from(toPublicKey, 'hex'))
       assert(secp256k1.publicKeyVerify(toPubKeyBuffer))
       const sharedKey = Buffer.from(this.getSharedKeyAsBuffer(toPublicKey), 'hex')
-      console.log(sharedKey)
       // By convention, the first byte denotes whether coordinate is compressed or not
       // We slice it off and just use the last 32 bytes
       msgString = client.encryptJSON({ jsonObj: messageObj, key: sharedKey.slice(1) })
@@ -159,7 +157,7 @@ client.BaseClient = class {
     const msg = line.split(' ');
     if (msg[0].toLowerCase() === 'connect') this.constructAndSendMessage('connect');
     else if (msg[0].toLowerCase() === 'sign' && msg.length == 2) console.log(this.genSignature(msg[1]));
-    else if (msg[0].toLowerCase() === 'verify' && msg.length == 2) this.constructAndSendMessage('verify', this.genSignature(msg[1]));
+    else if (msg[0].toLowerCase() === 'verify' && msg.length == 2) this.constructAndSendMessage('verify',msg[1]);
     else if (msg[0].toLowerCase() === 'private' && msg.length >= 3)
       this.constructAndSendMessage('msg', msg.slice(2).join(' '), msg[1]);
     else if (msg.length === 3 && msg[0].toLowerCase() === 'join') {
@@ -178,7 +176,7 @@ client.BaseClient = class {
 	 * Open the connection and start responding to event listeners.
    * Non-interactive, runnable in both tests and called by startChat.
 	 */
-  start() {
+  init() {
     console.log('Generating Key Pair....');
     this.genKeyPair();
     console.log('Your PUBLIC KEY : ', this.publicKey);
@@ -195,7 +193,7 @@ client.BaseClient = class {
 	 * Register readline interactive REPL. (Don't use for tests)
 	 */
   startChat() {
-    this.start()
+    this.init()
     const rl = readline.createInterface(process.stdin, process.stdout);
     rl.prompt();
     rl.on('line', (line) => {

@@ -112,7 +112,7 @@ const BaseServer = class {
   //Gnerates unique message id
   genMIG() {
     const id = uuid4().replace('-', '') + ':' + new Date().getTime();
-    return id;
+    return id;``
   }
 
   //broadcast messages to clients and peers
@@ -228,6 +228,7 @@ const BaseServer = class {
     else if (ch.type === 'msg') {
       // TODO: Message must be addressed to a private DM or channel, consider returning error message here.
       if (!ch.toPublicKey && !ch.cname) return;
+      if (ch.toPublicKey) ch.cname = '';
       if (ch.cname && !(ch.cname in this.channel_list && client.id in this.channel_list[ch.cname])) {
         sock.write(JSON.stringify({ type: 'error', msg: 'JOIN CHANNEL FIRST' }));
         return;
