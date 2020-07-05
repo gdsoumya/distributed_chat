@@ -1,5 +1,5 @@
 const net = require('net');
-const { BaseClient, messageConsoleLogger } = require('./clientUtils');
+const { BaseClient } = require('./clientUtils');
 
 const cli = {};
 
@@ -24,37 +24,37 @@ const cli = {};
  *
  */
 cli.CommandLineClient = class extends BaseClient {
-	constructor({ host, port }) {
-		super(new net.Socket(), host, port);
+  constructor({ host, port }) {
+    super(new net.Socket(), host, port);
 
-		// Add a 'close' event handler for the client socket
-		this.connection.on('close', () => {
-			console.log('Client closed');
-			process.exit();
-		});
+    // Add a 'close' event handler for the client socket
+    this.connection.on('close', () => {
+      console.log('Client closed');
+      process.exit();
+    });
 
-		this.connection.on('error', (err) => {
-			console.error(err);
-			process.exit();
-		});
-	}
+    this.connection.on('error', (err) => {
+      console.error(err);
+      process.exit();
+    });
+  }
 
-	// CLI net clients can connect to a server separately after creating a connection.
-	start() {
-		// Add CLI TCP socket specific client logger and connection logic
-		this.connection.connect(this.port, this.host, () => {
-			console.log(`Client connected to: ${this.host}:${this.port}`);
-		});
-	}
+  // CLI net clients can connect to a server separately after creating a connection.
+  start() {
+    // Add CLI TCP socket specific client logger and connection logic
+    this.connection.connect(this.port, this.host, () => {
+      console.log(`Client connected to: ${this.host}:${this.port}`);
+    });
+  }
 
-	/**
+  /**
 	 * Add a message listener callback function of the form
 	 * (jsonData) => { ... }
 	 * The net library listens on the event called `data`
 	 */
-	addMessageListener(listener) {
-		this.on('data', listener);
-	}
+  addMessageListener(listener) {
+    this.on('data',(data)=>{ listener(data,this)});
+  }
 };
 
 module.exports = cli;

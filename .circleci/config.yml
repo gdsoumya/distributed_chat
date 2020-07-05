@@ -11,14 +11,17 @@ jobs:
     steps:
       - checkout
       - run: pwd && ls && yarn
+      - run: yarn lint
+      - run: cd web; yarn; yarn lint
       - run:
           command: . ~/.profile; node scripts/fullServer.js 127.0.0.1 8545 8546 30303
           background: true
       - run:
           shell: /bin/sh
           command: |
-            sleep 3 && echo -ne "join zktransfer hello\ngoodbye" | node scripts/testClient.js capetown.arcology.nyc 8547 true
+            yarn test
+                  #sleep 3 && echo -ne "join zktransfer hello\ngoodbye" | node scripts/testClient.js capetown.arcology.nyc 8547 true
       - run:
           shell: /bin/sh
           command: |
-             echo -ne "join zktransfer hello\ngoodbye" | node scripts/testClient.js localhost 8546
+                  #echo -ne "join zktransfer hello\ngoodbye" | node scripts/testClient.js localhost 8546
