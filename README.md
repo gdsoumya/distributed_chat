@@ -1,8 +1,7 @@
 # Distributed Chat
 
 [![darkchat](https://circleci.com/gh/gdsoumya/distributed_chat.svg?style=svg)](https://app.circleci.com/projects/project-dashboard/github/gdsoumya)<br>
-A simple distributed chat system, still under construction!
-
+A simple Distributed Chat system with E22 encryption for DMs. <br>
 In less than 300 lines total a distributed chat client with channels, a server that can manually peer with other servers and use rudimentary peer discovery to auto-connect with more peers. All clients connected to a specific channel can communicate even if they are connected to different servers, as long as the servers are peered together.
 
 There are 3 types of Servers :

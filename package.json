@@ -1,7 +1,7 @@
 {
   "name": "darkchat",
-  "version": "0.2.5",
-  "description": "A distributed chat system",
+  "version": "0.2.6",
+  "description": "A distributed chat system with E2E Encryption for DMs",
   "main": "index.js",
   "files": [
     "index.js",
