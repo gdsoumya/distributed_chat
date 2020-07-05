@@ -17,7 +17,7 @@ client.messageConsoleLogger = (_data, wsc) => {
   if (data.type === 'msg') {
     if (data['toPublicKey']){
       msg = data['msg']
-      const sharedKey = Buffer.from(wsc.getSharedKeyAsBuffer(data['fromPublicKey']).slice(1))
+      const sharedKey = wsc.getSharedKeyAsBuffer(data['fromPublicKey']).slice(1)
       const decrypted_msg = client.decryptHexString({encryptedHexString:msg, key:sharedKey})
       console.log(`${data['uname']}:${data['fromPublicKey']}:- ${decrypted_msg}`);
     }

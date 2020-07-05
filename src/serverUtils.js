@@ -112,7 +112,7 @@ const BaseServer = class {
   //Gnerates unique message id
   genMIG() {
     const id = uuid4().replace('-', '') + ':' + new Date().getTime();
-    return id;``
+    return id;
   }
 
   //broadcast messages to clients and peers
