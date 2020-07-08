@@ -4,7 +4,7 @@
 import { Stage } from './stage'
 import { Client } from './client'
 import { ConnectionManager } from './connMan'
-import { Secp256k1PublicKey, Secp256k1Signature, JSONDatum } from './types'
+import { Secp256k1PublicKey, Secp256k1Signature } from './keys'
 import { JSONDatum } from './types'
 
 export class RequestChallengeStage extends Stage {
