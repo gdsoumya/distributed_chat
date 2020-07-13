@@ -1,51 +1,23 @@
 'use strict'
 
-import { Client } from './client'
+import { ClientState, Client } from './client'
+import { ConnectionManager } from './connMan'
 import { Stage } from './stage'
-import { RequestChallengeStage } from './register.ts'
-const { List } = require('immutable')
-const { assert } = require('chai')
-
-
-const pubClients = {}
+import { StageChangeListeners } from './types'
+import { RequestChallengeStage } from './register'
+import { List } from 'immutable'
+import { assert } from 'chai'
 
 export class PublicChannelClient extends Client {
 
-  channelName: string
-  userName: string
-	
-  constructor(channelName, userName, connMan) {
-    super(List([new RequestChallengeStage(                        )
-      ['requestChallenge', RequestChallengeStage],
-      ['joinChannel'], new JoinChannelStage(channelName, userName, parent)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      ++], 
-      ['publicMessage', PublicMessageStage],
-      ]))
-    this.currentStage.publicKey = this.publicKey
-    this.joinStage = this.currentStage
-    this.messageStage = new PublicMessageStage(this.publicKey)
+  constructor(channelName: string, userName: string, connMan: ConnectionManager, stageChangeListeners: List<StageChangeListeners>) {
+    super(connMan, List([
+      (clientState: ClientState) => new RequestChallengeStage(clientState),
+      (clientState: ClientState) => new JoinChannelStage(channelName, userName, clientState),
+      ]),
+    )
   }
+
 
 }
 
@@ -53,33 +25,37 @@ export class PublicChannelClient extends Client {
 
 export class JoinChannelStage extends Stage {
 
-  constructor(channelName: string, userName: string, parent: client) {
-    super("Join Public Channel")
+  readonly channelName: string
+  readonly userName: string
+
+  constructor(channelName: string, userName: string, clientState: ClientState) {
+    super("joinPublicChannel", clientState)
     this.channelName = channelName
     this.userName = userName
-    this.parent = parent
   }
 
-  sendServerCommand(connectionManager) {
-    assert(this.publicKey)
+  sendServerCommand(connectionManager: ConnectionManager) {
     connectionManager.sendJSON({
       type: 'join',
       userName: this.userName,
       channelName: this.channelName,
-      pubKey: this.publicKey,
+      fromPublicKey: this.clientState.keyPair.getPublicKey(),
     })
   }
 
   // We are unlikely to ever get here.
   // 
-  enqueueMessage(message) {
+  enqueueUserDatum(datum: JSONDatum) {
     throw new Error("Join a channel first")
   }
 
-  parseReplyToNextStage(dataJSON) {
+  parseReplyToNextState(dataJSON) {
     if (dataJSON.type === 'success') {
       console.log("server success received")
-      return this.messageStage
+      // We stay in this state indefinitely
+      // TODO: allow enqueueUserDatum to send close command to server
+      // and to handle here
+      return this.clientState
     } else {
       console.error("Received unexpected message", JSON.stringify(dataJSON))
     }
@@ -87,15 +63,16 @@ export class JoinChannelStage extends Stage {
 
 }
 
-const PublicMessageStage = class extends Stage {
+export class PublicMessageStage extends Stage {
 
-  constructor(publicKey) {
-    super("Message Public Channel")
+  private messageQueue: List<JSONDatum>
+
+  constructor(clientState: ClientState) {
+    super("publicMessage", clientState)
     this.messageQueue = new List([])
-    this.publicKey = publicKey
   }
 
-  sendServerCommand(connectionManager) {
+  sendServerCommand(connectionManager: ConnectionManager) {
     if (!this.messageQueue.isEmpty()) {
       connectionManager.sendJSON({
         type: 'msg',
@@ -107,11 +84,11 @@ const PublicMessageStage = class extends Stage {
     }
   }
 
-  enqueueMessage(message) {
-    this.messageQueue = this.messageQueue.push(message)
+  enqueueDatum(datum: JSONDatum) {
+    this.messageQueue = this.messageQueue.push(datum)
   }
 
-  parseReplyToNextStage(dataJSON) {
+  parseReplyToNextState(dataJSON: JSONDatum) {
     if (dataJSON.type === 'success') {
       // go and send the next message in the queue
       this.messageQueue = this.messageQueue.remove(0)
@@ -125,5 +102,3 @@ const PublicMessageStage = class extends Stage {
   }
 
 }
-
-module.exports = pubClients

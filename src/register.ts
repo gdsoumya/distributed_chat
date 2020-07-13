@@ -2,41 +2,39 @@
 'use strict'
 
 import { Stage } from './stage'
-import { Client } from './client'
+import { ClientState } from './client'
 import { ConnectionManager } from './connMan'
 import { Secp256k1PublicKey, Secp256k1Signature } from './keys'
 import { JSONDatum } from './types'
+import { assert } from 'chai'
 
 export class RequestChallengeStage extends Stage {
 
-  publicKey: Secp256k1PublicKey
-
-  constructor(publicKey: Secp256k1PublicKey) {
-    super("requestChallenege")
-    this.publicKey = publicKey
+  constructor(clientState: ClientState) {
+    super("requestChallenge", clientState)
   }
 
   sendServerCommand(connMan: ConnectionManager) {
-    assert(this.publicKey)
-    connMan.sendJSON({
+    connMan.sendDatum({
       type: 'connect',
-      pubKey: this.publicKey.toHexString(),
+      fromPublicKey: this.clientState.keyPair.getPublicKey().toHexString(),
     })
   }
 
   // We are unlikely to ever get here.
   // 
-  enqueueDatum(datum: JSONDatum) {
+  enqueueUserDatum(datum: JSONDatum) {
     throw new Error("Finish connecting before sending data")
   }
 
-  parseReplyToNextStage(datum: JSONDatum, parent: Client) {
+  parseReplyToNextState(datum: JSONDatum) {
     if (datum.type === 'verify') {
-      const challengeSig = parent.keyPair.sign(challenge)
+      const challengeSig = this.clientState.keyPair.sign(msg)
       console.log("server success received, challengeSig ", challengeSig)
-      return new SignChallengeStage(challengeSig, this.publicKey)
+      return ClientState.fromPreviousState(this.clientState, new SignChallengeStage(challengeSig, this.clientState)
     } else {
       console.error("Received unexpected pmessage", JSON.stringify(datum))
+      return this.clientState
     }
   }
 
@@ -44,69 +42,32 @@ export class RequestChallengeStage extends Stage {
 
 export class SignChallengeStage extends Stage {
 
-  publicKey: Secp256k1PublicKey
   challengeSig: Secp256k1Signature
 
-  constructor(challengeSig: Secp256k1Signature, publicKey: Secp256k1PublicKey) {
-    super("sign")
+  constructor(challengeSig: Secp256k1Signature, clientState: ClientState) {
+    super("sign", clientState)
     this.challengeSig = challengeSig
-    this.publicKey = publicKey
   }
 
-  enqueueDatum(datum: JSONDatum) {
+  enqueueUserDatum(datum: JSONDatum) {
     throw new Error("Finish connecting before sending data")
   }
 
   sendServerCommand(connMan: ConnectionManager) {
-    connMan.sendJSON({
+    connMan.sendDatum({
       type: 'verify',
-      pubKey: this.publicKey.toHexString(),
+      fromPublicKey: this.publicKey.toHexString(),
       msg: this.challengeSig.toHexString(),
     })
   }
 
-  parseReplyToNextStage(datum: JSONDatum, parent: Client) {
+  parseReplyToNextState(datum: JSONDatum) {
     if (datum.type === 'success') {
       console.log("Successfully connected client ${this.publicKey}")
-      return null
-    }
-  }
-
-}
-
-// Private classes for singletons
-
-const RegisterStage = class extends Stage {
-
-  constructor(channelName, userName, parent) {
-    super("Join Public Channel")
-    this.channelName = channelName
-    this.userName = userName
-    this.parent = parent
-  }
-
-  sendServerCommand(connectionManager) {
-    assert(this.publicKey)
-    connectionManager.sendJSON({
-      type: 'join',
-      userName: this.userName,
-      channelName: this.channelName,
-      pubKey: this.publicKey,
-    })
-  }
-
-  // We are unlikely to ever get here.
-  // 
-  enqueueMessage(message) {
-    throw new Error("Join a channel first")
-  }
-
-  parseReplyToNextStage(dataJSON) {
-    if (dataJSON.type === 'success') {
-      console.log("server success received")
-      return this.messageStage
+      return ClientState.fromNextStageCreator(this.clientState)
     } else {
-      console.error("Received unexpected message", JSON.stringify(dataJSON))
+      console.error("Received unexpected message", JSON.stringify(datum))
+      return this.clientState
     }
   }
 

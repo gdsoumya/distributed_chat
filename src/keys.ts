@@ -98,13 +98,13 @@ export class Secp256k1PrivateKey extends HexBuffer {
 
 export class Secp256k1KeyPair {
 
-  publicKey: Secp256k1PublicKey
-  privateKey: Secp256k1PrivateKey
+  private publicKey: Secp256k1PublicKey
+  private privateKey: Secp256k1PrivateKey
 
-  constructor() {
+  constructor(existingPrivateKey: Secp256k1PrivateKey | null = null) {
 
-    let privKeyBuffer
-    while (true) { // eslint-disable-line no-constant-condition
+    let privKeyBuffer = existingPrivateKey && existingPrivateKey.bufferValue
+    while (true && (privKeyBuffer === null)) { // eslint-disable-line no-constant-condition
       const privKeyBuffer = randombytes(32);
       if (secp256k1.privateKeyVerify(privKeyBuffer)) {
         break;
@@ -123,6 +123,10 @@ export class Secp256k1KeyPair {
     return Secp256k1Signature.fromUint8Array(sigObj.signature);
   }
 
+  getPublicKey() {
+    return this.publicKey
+  }
+
 }
 
 export class Secp256k1Signature {
@@ -136,6 +140,10 @@ export class Secp256k1Signature {
 
   static fromUint8Array(sig: Uint8Array) {
     return new Secp256k1Signature(Buffer.from(sig))
+  }
+
+  toHexString() {
+    return this.bufferValue.toString('hex')
   }
 
   constructor(signature: Buffer) {
