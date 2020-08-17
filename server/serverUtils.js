@@ -194,14 +194,10 @@ const BaseServer = class {
       client.id = ch['fromPublicKey'];
     }
     catch (e) {
-<<<<<<< HEAD
       sock.write(JSON.stringify({ type: 'error', msg: `MALFORMED DATA ${e.toString()}` }));
-=======
-      sock.write(JSON.stringify({ type: 'error', msg: 'MALFORMED DATA: no pk member found' }));
->>>>>>> 5af31d6be5216aab8d3575c25c40e597614a1a62
       return;
     }
-    console.log('CH' + ch)
+    console.log('CH' + JSON.stringify(ch))
     if (!(client.id in this.client_list)) {
       if (ch.type == 'connect') {
         client.challenge = this.getChallenge();
@@ -217,11 +213,7 @@ const BaseServer = class {
         sock.write(JSON.stringify({ type: 'success', msg: 'Connected to Network' }));
       }
       else {
-<<<<<<< HEAD
         sock.write(JSON.stringify({ type: 'error', msg: `MALFORMED DATA: bad sig verify. type ${ch.type} challenge ${ch.challenge}` }));
-=======
-        sock.write(JSON.stringify({ type: 'error', msg: 'MALFORMED DATA: bad sig verify' }));
->>>>>>> 5af31d6be5216aab8d3575c25c40e597614a1a62
       }
     }
     else if (ch.type == 'join') {

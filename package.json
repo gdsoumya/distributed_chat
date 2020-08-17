@@ -10,7 +10,8 @@
   "scripts": {
     "test": "mocha ./tests --trace-warnings --exit --colors --recursive --reporter spec -t 4000",
     "start": "node scripts/fullServer.js 127.0.0.1 8545 8546 30303",
-    "lint": "eslint -c .eslintrc.json --fix src/*.js*"
+    "lint": "eslint -c .eslintrc.json --fix src/*.js*",
+    "build": "tsc --build ."
   },
   "author": "Soumya Ghosh Dastidar",
   "license": "ISC",
@@ -39,7 +40,6 @@
     "@types/node": "14.0.14",
     "@types/ws": "7.2.5",
     "eslint": "6.6.0",
-    "g": "2.0.1",
     "mocha": "8.0.1"
   }
 }

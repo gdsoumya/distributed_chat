@@ -1,7 +1,7 @@
 // Test suite for encrypted direct messages
 'use strict'
 
-const { WebSocketClient, decryptHexString } = require('..')
+import { WebSocketClient, decryptHexString } from '..'
 const { assert } = require('chai')
 
 describe('Encrypted direct messages', () => {

@@ -1,14 +1,16 @@
-export * from './src/cliConnMan'
-export * from './src/wsConnMan'
-export * from './src/connMan'
-export * from './src/stage'
-export * from './src/client'
-export * from './src/pubClient'
+export * from './src/connmans/cliConnMan'
+export * from './src/connmans/wsConnMan'
+export * from './src/connmans/connMan'
+export * from './src/stages/stage'
+export * from './src/clients/client'
+export * from './src/clients/pubClient'
+export * from './src/keys'
 export * from './src/types'
-const server = require('./src/server')
-const serverUtils = require('./src/serverUtils')
-
+const server = require('./server/server')
+const serverUtils = require('./server/serverUtils')
+/*
 module.exports = {
   ...server,
   ...serverUtils,
 }
+*/

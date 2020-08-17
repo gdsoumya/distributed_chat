@@ -2,8 +2,10 @@ import secp256k1 from 'secp256k1'
 import { assert } from 'chai'
 
 const randombytes = require('randombytes')
-const TextEncoder = require('text-encoder')
+const { TextEncoder } = require('text-encoder')
 import { integer } from './types'
+import { List } from 'immutable'
+import { MessageConsoleLogger } from './clientUtils'
 
 const HEX_CHARS = /[0-9a-f]/g
 
@@ -22,14 +24,16 @@ export class HexBuffer {
 
       const matchList = List(matches as Array<string>)
       const initialChars = List(initial)
+
       const zipped = initialChars.zipAll(matchList)
 
       const mismatches: List<integer> = zipped.map(([x, y]: [string, string], index: number) => {
-        return (((x === undefined) || (y == undefined)) ? index : -1) as integer
+        return (((x === undefined) || (y == undefined)) ? -1 : index) as integer
       })
 
-      assert(mismatches.isEmpty(),
-        'Not all chars are hex, first mistmatch at ${mismatches.first((index) => (index !=== -1) )}'
+      const firstMismatch = mismatches.find((index: number) => (index === -1) )
+      assert(firstMismatch === undefined,
+        `Not all chars are hex, first mistmatch at ${firstMismatch}`
       )
     }
 
@@ -81,7 +85,7 @@ export class Secp256k1PrivateKey extends HexBuffer {
 
   static BUFFER_LENGTH = 32 as integer
 
-  fromString(privateKey: string) {
+  static fromString(privateKey: string) {
     const hexBuffer = HexBuffer.fromString(privateKey, Secp256k1PrivateKey.BUFFER_LENGTH)
     return new Secp256k1PrivateKey(hexBuffer.bufferValue)
   }
@@ -103,21 +107,21 @@ export class Secp256k1KeyPair {
 
   constructor(existingPrivateKey: Secp256k1PrivateKey | null = null) {
 
-    let privKeyBuffer = existingPrivateKey && existingPrivateKey.bufferValue
+    let privKeyBuffer = existingPrivateKey ? existingPrivateKey.bufferValue : randombytes(32)
     while (true && (privKeyBuffer === null)) { // eslint-disable-line no-constant-condition
-      const privKeyBuffer = randombytes(32);
+      privKeyBuffer = randombytes(32);
       if (secp256k1.privateKeyVerify(privKeyBuffer)) {
         break;
       }
     }
-
     this.privateKey = new Secp256k1PrivateKey(privKeyBuffer)
     this.publicKey = Secp256k1PublicKey.fromPrivateKey(this.privateKey)
+
   }
 
   sign(message: string) {
     const encodedMessage = new TextEncoder().encode(message);
-    const sigObj = secp256k1.ecdsaSign(msg, this.privateKey.asUint8Array());
+    const sigObj = secp256k1.ecdsaSign(encodedMessage, this.privateKey.asUint8Array());
     // sigObj is an object of type
     // { signature: Uint8Array, recid: integer }
     return Secp256k1Signature.fromUint8Array(sigObj.signature);
@@ -129,13 +133,13 @@ export class Secp256k1KeyPair {
 
 }
 
-export class Secp256k1Signature {
+export class Secp256k1Signature extends HexBuffer {
 
   static BUFFER_LENGTH = 64 as integer
 
   fromString(signature: string) {
-    const hexBuffer = super.fromString(signature, Secp256k1Signature.BUFFER_LENGTH)
-    return new Secp256k1Signature(hexBuffer)
+    const hexBuffer = HexBuffer.fromString(signature, Secp256k1Signature.BUFFER_LENGTH)
+    return new Secp256k1Signature(hexBuffer.bufferValue)
   }
 
   static fromUint8Array(sig: Uint8Array) {

@@ -1,7 +1,7 @@
 const net = require('net');
-const { ConnectionManager } = require('./connMan');
-
-const cli = {};
+import { ConnectionManager } from './connMan';
+import { integer, MessageListener } from '../types'
+import { Socket as TCPSocket } from 'net'
 
 /**
  * How to instantiate a CommandLineClient
@@ -23,29 +23,38 @@ const cli = {};
  * c.start()
  *
  */
-cli.CommandLineConnectionManager = class extends ConnectionManager {
-  
-  constructor({ host, port }) {
-    super(new net.Socket(), host, port);
+export class CommandLineConnectionManager extends ConnectionManager {
 
+  private tcpSocket: TCPSocket
+  
+  constructor(host: string, port: integer) {
+    super(() => new net.Socket(), host, port);
+
+    this.tcpSocket = this.connection as TCPSocket
+
+  }
+
+  send(jsonString: string) {
+    this.tcpSocket.write(jsonString)
     // Add a 'close' event handler for the client socket
-    this.connection.on('close', () => {
+    this.tcpSocket.on('close', () => {
       console.log('Client closed');
       process.exit();
     });
 
-    this.connection.on('error', (err) => {
+    this.tcpSocket.on('error', (err) => {
       console.error(err);
       process.exit();
     });
   }
 
   // CLI net clients can connect to a server separately after creating a connection.
-  start() {
+  async registerCallbacks() {
     // Add CLI TCP socket specific client logger and connection logic
-    this.connection.connect(this.port, this.host, () => {
+    this.tcpSocket.connect(this.port, this.host, () => {
       console.log(`Client connected to: ${this.host}:${this.port}`);
     });
+
   }
 
   /**
@@ -53,9 +62,7 @@ cli.CommandLineConnectionManager = class extends ConnectionManager {
 	 * (jsonData) => { ... }
 	 * The net library listens on the event called `data`
 	 */
-  addMessageListener(listener) {
-    this.on('data', listener);
+  addMessageListener(listener: MessageListener) {
+    this.tcpSocket.on('data', listener);
   }
 };
-
-module.exports = cli;
