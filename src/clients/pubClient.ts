@@ -17,7 +17,7 @@ export class PublicChannelClient extends Client {
       RequestChallengeStageCreator,
       (builder: ClientStateBuilder) => new JoinChannelStage(channelName, userName, builder),
       (builder: ClientStateBuilder) => new PublicMessageStage(channelName, userName, builder),
-    ]), stageChangeListeners)
+    ]))
   }
 
   triggerQueueProcessing() {

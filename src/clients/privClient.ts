@@ -14,14 +14,11 @@ export class PrivateChannelClient extends Client {
   constructor(
     counterParty: Secp256k1PublicKey,
     connMan: ConnectionManager,
-    stageChangeListeners: List<StageChangeListener>,
-
     ) {
     super(connMan,
       List([
         RequestChallengeStageCreator,
         (builder: ClientStateBuilder) => new PrivateMessageStage(counterParty, builder) ]),
-      stageChangeListeners,
     )
   }
 

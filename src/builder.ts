@@ -19,7 +19,6 @@ export class ClientStateBuilder {
         keyPair: Secp256k1KeyPair,
         connectionManager: ConnectionManager,
         stageCreators: List<StageCreator>,
-        stageChangeListeners: List<StageChangeListener>,
         nextStageCreator: StageCreator | null = null,
         client: Client,
         ) {
@@ -30,13 +29,11 @@ export class ClientStateBuilder {
         const cs = new ClientState(
             keyPair,
             connectionManager,
-            List(),
             remainingStageCreators,
-            stageChangeListeners.remove(0),  
             this,    
           )
         this.lazyClientState = () => {
-            return cs;
+            return cs
         }
         this.lazyStage = () => {
             return currentStageCreator(this)
@@ -70,18 +67,9 @@ export class ClientStateBuilder {
             previousState.keyPair,
             previousState.connectionManager,
             remainingStageCreators,
-            previousState.remainingStageChangeListeners.remove(0),
             nextStageCreator,
             previousState.builder.client
         )
-
-        {
-            const stageChangeListener: StageChangeListener = previousState.remainingStageChangeListeners.first()
-            if (typeof(stageChangeListener) === 'function') {
-                stageChangeListener(previousState.builder.getStage(), newBuilder.getStage())
-            }
-
-        }
 
         return newBuilder
 

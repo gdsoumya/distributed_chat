@@ -24,24 +24,18 @@ export class ClientState {
 
   readonly keyPair: Secp256k1KeyPair
   readonly connectionManager: ConnectionManager
-  readonly stageHistory: List<Stage>
   readonly remainingStageCreators: List<StageCreator>
-  readonly remainingStageChangeListeners: List<StageChangeListener>
   readonly builder: ClientStateBuilder
 
   constructor(
     keyPair: Secp256k1KeyPair,
     connectionManager: ConnectionManager,
-    stageHistory: List<Stage>,
     remainingStageCreators: List<StageCreator>,
-    remainingStageChangeListeners: List<StageChangeListener>,
     builder: ClientStateBuilder,
     ) {
     this.keyPair = keyPair
     this.connectionManager = connectionManager
-    this.stageHistory = stageHistory
     this.remainingStageCreators = remainingStageCreators
-    this.remainingStageChangeListeners = remainingStageChangeListeners
     this.builder = builder
   }
 
@@ -63,7 +57,6 @@ export abstract class Client {
   constructor(
     connectionManager: ConnectionManager,
     initialStageCreators: List<StageCreator>, 
-    stageChangeListeners: List<StageChangeListener>,
     flushLimit: integer = Client.FLUSH_LIMIT,
     ) {
 
@@ -81,8 +74,9 @@ export abstract class Client {
     this.builder = new ClientStateBuilder(
       new Secp256k1KeyPair(), // TODO In the future, we may wish to allow an existing private key
       connectionManager,
-      initialStageCreators,
-      stageChangeListeners,
+      initialStageCreators.remove(0),
+      initialStageCreators.first(),
+      this,
     )
   }
 
@@ -122,13 +116,8 @@ export abstract class Client {
 
   protected enqueueUserDatum(datum: JSONDatum) {
     this.messageQueue = this.messageQueue.push(datum)
-    this.triggerQueueProcessing()
+    //this.triggerQueueProcessing()
   }
-
-  // Each subclass determines whether to trigger processing
-  // the message queue, based on the current stage, flush limit, and send / acked counts
-  abstract triggerQueueProcessing() : void
-
 
   enqueueMessage(msg: string) {
     this.enqueueUserDatum({
@@ -146,22 +135,6 @@ export abstract class Client {
         // Immediately start the new stage
         this.builder.startStage()
 
-        const stageChangeListener = this.builder.getClientState().remainingStageChangeListeners.remove(0)
-        // If we don't have any stage change listeners left, just return
-        if (!stageChangeListener) {
-          return
-        }
-
-        // Update the old state's stage change listeners
-
-          console.log('Before stage change listener')
-          console.log(JSON.stringify(datum))
-          console.log(this.builder.getStage().name)
-          if (!stageChangeListener.isEmpty()) {
-          const firstListener: StageChangeListener = stageChangeListener.first()
-          firstListener(this.builder.getStage(), newBuilder.getStage())        
-        }
-        console.log('after stage change listener')
       } catch(e) {
         console.error('ERROR: ', JSON.stringify(e.toString()))
       }
