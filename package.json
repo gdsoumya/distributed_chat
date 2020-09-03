@@ -9,9 +9,9 @@
   ],
   "scripts": {
     "test": "mocha ./tests --trace-warnings --exit --colors --recursive --reporter spec -t 4000",
-    "start": "node scripts/fullServer.js 127.0.0.1 8545 8546 30303",
+    "start": "node server/scripts/fullServer.js 127.0.0.1 8545 8546 30303",
     "lint": "eslint -c .eslintrc.json --fix server/*.js*",
-    "lint:ts": "eslint -c .eslintrc.json --fix src/*.ts",
+    "lint:ts": "eslint -c .eslintrc.json --fix src/*.ts tests/*.ts",
     "build": "tsc --build ."
   },
   "author": "Soumya Ghosh Dastidar",
