@@ -1,78 +1,78 @@
-'use strict'
-
-import { StageCreator, StageChangeListener } from './types'
-import { Stage } from './stages/stage'
-import { ClientState, Client } from './clients/client'
-import { Secp256k1KeyPair } from './keys'
-import { ConnectionManager } from './connmans/connMan'
-import { List } from 'immutable'
+import { List } from 'immutable';
+import { StageCreator } from './types';
+import { Stage } from './stages/stage';
+import { ClientState, Client } from './clients/client';
+import { Secp256k1KeyPair } from './keys';
+import { ConnectionManager } from './connmans/connMan';
 
 // Builder for an immutable client state that
 // mutually links with an immutable stage
 export class ClientStateBuilder {
-
+    /* eslint-disable no-unused-vars */
     private lazyClientState: ((stage: Stage) => ClientState) | ClientState
+
+    /* eslint-enable no-unused-vars */
     private lazyStage: Stage | StageCreator
+
     readonly client: Client
 
     constructor(
-        keyPair: Secp256k1KeyPair,
-        connectionManager: ConnectionManager,
-        stageCreators: List<StageCreator>,
-        nextStageCreator: StageCreator | null = null,
-        client: Client,
-        ) {
+      keyPair: Secp256k1KeyPair,
+      connectionManager: ConnectionManager,
+      stageCreators: List<StageCreator>,
+      nextStageCreator: StageCreator | null = null,
+      client: Client,
+    ) {
+      /* eslint-disable max-len */
+      const currentStageCreator: StageCreator = (nextStageCreator !== null) ? nextStageCreator : stageCreators.first();
+      const remainingStageCreators = (nextStageCreator !== null) ? stageCreators : stageCreators.remove(0);
+      /* eslint-enable max-len */
 
-        const currentStageCreator: StageCreator = (nextStageCreator !== null) ? nextStageCreator : stageCreators.first()
-        const remainingStageCreators = (nextStageCreator !== null) ? stageCreators : stageCreators.remove(0)
-
-        const cs = new ClientState(
-            keyPair,
-            connectionManager,
-            remainingStageCreators,
-            this,    
-          )
-        this.lazyClientState = () => {
-            return cs
-        }
-        this.lazyStage = () => {
-            return currentStageCreator(this)
-        }
-        this.client = client
-      
+      const cs = new ClientState(
+        keyPair,
+        connectionManager,
+        remainingStageCreators,
+        this,
+      );
+      this.lazyClientState = () => cs;
+      this.lazyStage = () => currentStageCreator(this);
+      this.client = client;
     }
 
     getClientState(): ClientState {
-        const result: ClientState = (typeof(this.lazyClientState) === 'function') ? this.lazyClientState(this.getStage()) : this.lazyClientState
-        this.lazyClientState = result
-        return result
+      const result: ClientState = (typeof (this.lazyClientState) === 'function') ? this.lazyClientState(this.getStage()) : this.lazyClientState;
+      this.lazyClientState = result;
+      return result;
     }
 
     getStage(): Stage {
-        const result: Stage = (typeof(this.lazyStage) === 'function') ? this.lazyStage(this) : this.lazyStage
-        this.lazyStage = result
-        return result
+      const result: Stage = (typeof (this.lazyStage) === 'function') ? this.lazyStage(this) : this.lazyStage;
+      this.lazyStage = result;
+      return result;
     }
 
     startStage() {
-        this.getStage().start(this.getClientState().connectionManager)
+      return this.getStage().start(this.getClientState().connectionManager);
     }
 
     toNextBuilder(_nextStageCreator?: StageCreator): ClientStateBuilder {
+      const previousState = this.getClientState();
+      const nextStageCreator = _nextStageCreator || previousState.remainingStageCreators.first();
 
-        const previousState = this.getClientState()
-        const nextStageCreator = _nextStageCreator || previousState.remainingStageCreators.first()
-        const remainingStageCreators = _nextStageCreator ? previousState.remainingStageCreators.remove(0) : previousState.remainingStageCreators
-        const newBuilder = new ClientStateBuilder(
-            previousState.keyPair,
-            previousState.connectionManager,
-            remainingStageCreators,
-            nextStageCreator,
-            previousState.builder.client
-        )
+      /* eslint-disable max-len */
+      const remainingStageCreators = _nextStageCreator ? previousState.remainingStageCreators.remove(0) : previousState.remainingStageCreators;
+      /* eslint-enable max-len */
 
-        return newBuilder
+      const newBuilder = new ClientStateBuilder(
+        previousState.keyPair,
+        previousState.connectionManager,
+        remainingStageCreators,
+        nextStageCreator,
+        previousState.builder.client,
+      );
 
+      return newBuilder;
     }
-
 }
+
+export default ClientStateBuilder;

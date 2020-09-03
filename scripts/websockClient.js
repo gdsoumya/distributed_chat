@@ -5,7 +5,9 @@ const args = process.argv.slice(2);
 // Configuration parameters
 const HOST = args[0];
 const PORT = args[1];
-const USE_WSS = args[2];
+const USE_WSS = Boolean(args[2]);
+
+console.log('USE_WSS', USE_WSS)
 
 const wsc = new WebSocketClient({ host: HOST, port: PORT, useWSS: USE_WSS });
 

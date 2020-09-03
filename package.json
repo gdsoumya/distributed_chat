@@ -10,7 +10,8 @@
   "scripts": {
     "test": "mocha ./tests --trace-warnings --exit --colors --recursive --reporter spec -t 4000",
     "start": "node scripts/fullServer.js 127.0.0.1 8545 8546 30303",
-    "lint": "eslint -c .eslintrc.json --fix src/*.js*",
+    "lint": "eslint -c .eslintrc.json --fix server/*.js*",
+    "lint:ts": "eslint -c .eslintrc.json --fix src/*.ts",
     "build": "tsc --build ."
   },
   "author": "Soumya Ghosh Dastidar",
@@ -39,7 +40,16 @@
     "@types/mocha": "7.0.2",
     "@types/node": "14.0.14",
     "@types/ws": "7.2.5",
-    "eslint": "6.6.0",
+    "@typescript-eslint/eslint-plugin": "4.0.1",
+    "@typescript-eslint/parser": "4.0.1",
+    "eslint": "7.8.1",
+    "eslint-config-airbnb": "18.2.0",
+    "eslint-plugin-import": "2.22.0",
+    "eslint-plugin-jsx-a11y": "6.3.1",
+    "eslint-plugin-react": "7.20.6",
+    "eslint-plugin-react-hooks": "4.1.0",
+    "typescript": "4.0.2",
+    "typescript-eslint": "0.0.1-alpha.0",
     "mocha": "8.0.1"
   }
 }
