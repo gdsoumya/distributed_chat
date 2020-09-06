@@ -1,24 +1,24 @@
 import { List } from 'immutable'
 
-import { JSONDatum, DarkChatSocket, integer, DatumListener, DarkChatSocketCreator } from '../types'
+import {
+  JSONDatum, DarkChatSocket, integer, DatumListener, DarkChatSocketCreator,
+} from '../types'
 import { Secp256k1PublicKey } from '../keys'
 
 export const messageConsoleLogger = (datum: JSONDatum): void => {
-  const msg = Buffer.isBuffer(datum['msg']) ? Buffer.from(datum['msg']).toString() : JSON.stringify(datum['msg']);
+  const msg = Buffer.isBuffer(datum.msg)
+    ? Buffer.from(datum.msg).toString() : JSON.stringify(datum.msg);
 
-  //console.log(_datum);
+  // console.log(_datum);
   if (datum.type === 'msg') {
-    if (datum['private']) console.log(`${datum['uname']}:${datum['pk']}:- ${msg}`);
-    else console.log(`${datum['uname']}:${datum['cname']}- ${msg}`);
-  }
-  else if (datum.type === 'error') {
-    console.log(`ERROR : ${msg}`);
-  }
-  else if (datum.type === 'success') {
-    console.log(`${msg}`);
-  }
-  else if (datum.type === 'verify') {
-    console.log(`VERIFY : ${msg}`);
+    if (datum.private) console.log(`${datum.uname}:${datum.pk}:- ${msg}`); // eslint-disable-line no-console
+    else console.log(`${datum.uname}:${datum.cname}- ${msg}`); // eslint-disable-line no-console
+  } else if (datum.type === 'error') {
+    console.log(`Server ERROR : ${msg}`); // eslint-disable-line no-console
+  } else if (datum.type === 'success') {
+    console.log(`${msg}`); // eslint-disable-line no-console
+  } else if (datum.type === 'verify') {
+    console.log(`VERIFY : ${msg}`); // eslint-disable-line no-console
   }
 };
 
@@ -46,20 +46,22 @@ export abstract class ConnectionManager {
      * The ws library, and the isomorphic shim above for Browser Websocket,
      * listen on the event called `message`
      */
-  addDatumListener(listener: (datum: JSONDatum) => void) {
+  addDatumListener(listener: (datum: JSONDatum) => void) { // eslint-disable-line no-unused-vars
     this.datumListeners = this.datumListeners.push(listener)
   }
 
-  abstract send(jsonString: string): void;
+  abstract send(jsonString: string): void; // eslint-disable-line no-unused-vars
 
-  sendDatum({ type, channelName=null, userName=null, fromPublicKey=null, msg=null, toPublicKey=null}: { 
+  sendDatum({
+    type, channelName = null, userName = null, fromPublicKey = null, msg = null, toPublicKey = null,
+  }: {
     type: string,
     channelName?: string | null,
     userName?: string | null,
     fromPublicKey?: Secp256k1PublicKey | null,
     msg?: string | null,
     toPublicKey?: Secp256k1PublicKey | null,
-  } ): void {
+  }): void {
     const jsonString = JSON.stringify({
       type,
       msg,
@@ -68,7 +70,7 @@ export abstract class ConnectionManager {
       toPublicKey: toPublicKey && toPublicKey.toHexString(),
       cname: channelName,
     })
-    console.log('sendDatum', jsonString)
+    console.log('sendDatum', jsonString) // eslint-disable-line no-console
     this.send(jsonString);
   }
 
@@ -80,17 +82,16 @@ export abstract class ConnectionManager {
     this.started = true
     // Lazy evaluation of connection creator, so that we only create it right before
     // we register onopen listener
-    if (typeof(this.connection) === 'function') {
+    if (typeof (this.connection) === 'function') {
       this.connection = this.connection()
     }
     await this.registerCallbacks()
   }
 
   /**
-	 * Close the connection, to allow the client to end non-interactively.
+   * Close the connection, to allow the client to end non-interactively.
    * If connection requires special closing, do this in subclass.
-	 */
-  stop() {
-  }
+   */
+  abstract stop(): void
 
-};
+}

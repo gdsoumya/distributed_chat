@@ -1,6 +1,4 @@
-'use strict'
-
-import { ClientState  } from '../clients/client'
+/* eslint-disable max-classes-per-file */
 import { ConnectionManager } from '../connmans/connMan'
 import { JSONDatum, StageCreator } from '../types'
 import { ClientStateBuilder } from '../builder'
@@ -16,7 +14,7 @@ import { ClientStateBuilder } from '../builder'
  * creator in the queue.
 
  * Stages have access to a parent clientState from when they
- * were created, which they can reference in 
+ * were created, which they can reference in
  */
 export abstract class Stage {
 
@@ -38,9 +36,11 @@ export abstract class Stage {
     this.sendServerCommand(connMan)
   }
 
+  /* eslint-disable no-unused-vars */
   abstract sendServerCommand(connMan: ConnectionManager): void
 
   abstract parseReplyToNextBuilder(serverDatum: JSONDatum): ClientStateBuilder
+  /* eslint-enable no-unused-vars */
 
 }
 
@@ -52,14 +52,15 @@ class ErrorStage extends Stage {
   }
 
   sendServerCommand(): void {
-    throw new Error("ErrorStage: we've run out of StageCreators in your protocol")
+    throw new Error(`ErrorStage: we've run out of StageCreators with builder ${this.builder}`)
   }
+
   parseReplyToNextBuilder(serverDatum: JSONDatum): ClientStateBuilder {
-    throw new Error("ErrorStage: we've run out of StageCreators in your protocol")
+    throw new Error(`ErrorStage: we've run out of StageCreators with builder ${this.builder}`
+    + `when receiving datum ${serverDatum}`)
   }
 
 }
 
-export const ErrorStageCreator: StageCreator = (builder: ClientStateBuilder) => {
-  return new ErrorStage(builder)
-}
+/* eslint-disable max-len */
+export const ErrorStageCreator: StageCreator = (builder: ClientStateBuilder) => new ErrorStage(builder)

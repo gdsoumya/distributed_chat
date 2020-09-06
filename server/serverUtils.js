@@ -84,10 +84,10 @@ const BaseServer = class {
       if (cmd.length === 3 && cmd[0] === 'connect') {
         this.addPeer(cmd[1], cmd[2]);
       } else if (cmd.length === 1 && cmd[0] === 'peers') {
-        const peers = Object.keys(this.peer_list);
+        const peers = Object.entries(this.peer_list);
         if (peers.length > 0) {
-          console.log(`CONENCTED PEERS (${peers.length}):`); // eslint-disable-line no-console
-          peers.forEach((k, i) => console.log(`${i + 1}. ${k}`)); // eslint-disable-line no-console
+          console.log(`CONNECTED PEERS (${peers.length}):`); // eslint-disable-line no-console
+          peers.forEach((k, v) => console.log(`${v + 1}. ${k}`)) // eslint-disable-line no-console
         } else {
           console.log('No Peers Connected !'); // eslint-disable-line no-console
         }
@@ -120,9 +120,10 @@ const BaseServer = class {
     if (toPublicKey && toPublicKey in this.client_list) {
       this.client_list[toPublicKey].write(data);
     } else if (chn && chn in this.channel_list) {
-      this.channel_list[chn].forEach((sock) => {
-        if (src !== this.channel_list[chn][sock]) {
-          this.channel_list[chn][sock].write(data);
+      const channels = Object.entries(this.channel_list[chn])
+      channels.forEach((key, sock) => {
+        if (src !== sock) {
+          sock.write(data);
         }
       });
     }
@@ -193,7 +194,7 @@ const BaseServer = class {
         client.challenge = BaseServer.getChallenge(); // eslint-disable-line no-param-reassign
         sock.write(JSON.stringify({ type: 'verify', msg: client.challenge }));
       } else if (ch.type === 'verify' && client.challenge
-        && this.verifyChallenge(client.challenge, ch.msg, client.id)
+        && BaseServer.verifyChallenge(client.challenge, ch.msg, client.id)
       ) {
         this.client_list[client.id] = sock;
         /* eslint-disable no-console */
@@ -236,8 +237,9 @@ const BaseServer = class {
   handleClientDisconnect(client) {
     console.log(`CLIENT disconnected : ${client.id}`); // eslint-disable-line no-console
     if (client.id in this.client_list) {
-      this.channel_list.forEach((ch) => {
-        if (client.id in this.channel_list[ch]) {
+      const channels = Object.entries(this.channel_list)
+      channels.forEach(([ch, channel]) => {
+        if (client.id in channel) {
           delete this.channel_list[ch][client.id];
         }
       });

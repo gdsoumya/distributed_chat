@@ -1,32 +1,40 @@
 // Test suite for instantiating and kicking off websocket clients
 // for basic channel joining stages
 
-import { List } from 'immutable';
+import { assert } from 'chai'
 import {
-  PublicChannelClient, WebSocketConnectionManager, Stage, integer,
-} from '..';
+  PublicChannelClient, WebSocketConnectionManager, integer,
+} from '..'
+
+console.log('TYPEOF', typeof WebSocketConnectionManager)
 
 describe('WebSocket clients', () => { // eslint-disable-line no-undef
-  const wsConnMan = new WebSocketConnectionManager({
+  const wsc1 = new WebSocketConnectionManager({
+    host: 'localhost',
+    port: 8546 as integer,
+    useWSS: false, // local instance won't have TLS enabled
+  });
+  const wsc2 = new WebSocketConnectionManager({
     host: 'localhost',
     port: 8546 as integer,
     useWSS: false, // local instance won't have TLS enabled
   });
 
-  const stageChangeListeners = List([
-    (oldStage: Stage, newStage: Stage) => {
-      console.log('old stage', oldStage);
-      console.log('new stage', newStage);
-    },
-  ]);
+  const client = new PublicChannelClient('wizards', 'iceking', wsc1);
 
-  const client = new PublicChannelClient('wizards', 'iceking', wsConnMan, stageChangeListeners, 1 as integer);
+  const client2 = new PublicChannelClient('wizards', 'abracadaniel', wsc2)
 
-  // const client2 = new PublicChannelClient('wizards', 'abracadaniel', wsConnMan, stageChangeListeners)
+  it('has three remaining stages', async () => { // eslint-disable-line no-undef
+    assert.equal(client.getBuilder().getClientState().remainingStageCreators.count(), 2,
+      'Expected 2 remaining stage creators for public channel client.',
+    )
+  })
 
-  it('joins a public channel', async () => {
-    await client.start();
-    await client.enqueueMessage('hello');
-    // await client2.start()
+  it('joins a public channel', async () => { // eslint-disable-line no-undef
+
+    //await client.start();
+    //await client.enqueueMessage('hello');
+
+    //await client2.start()
   });
 });

@@ -1,80 +1,13 @@
-'use strict'
+/* eslint-disable max-classes-per-file */
 
+import { List } from 'immutable'
 import { Client } from './client'
 import { ConnectionManager } from '../connmans/connMan'
 import { Stage } from '../stages/stage'
-import { StageChangeListener, JSONDatum, integer } from '../types'
+import { JSONDatum, integer } from '../types'
 import { RequestChallengeStageCreator } from '../stages/register'
-import { List } from 'immutable'
 import { ClientStateBuilder } from '../builder'
-
-export class PublicChannelClient extends Client {
-
-
-  constructor(channelName: string, userName: string, connMan: ConnectionManager, stageChangeListeners: List<StageChangeListener>,
-    flushLimit?: integer) {
-    super(connMan, List([
-      RequestChallengeStageCreator,
-      (builder: ClientStateBuilder) => new JoinChannelStage(channelName, userName, builder),
-      (builder: ClientStateBuilder) => new PublicMessageStage(channelName, userName, builder),
-    ]))
-  }
-
-  triggerQueueProcessing() {
-    const stage = this.builder.getStage()
-    if (stage instanceof PublicMessageStage) {
-      if (this.messageQueue.count() >= this.flushLimit && (stage.getSentCount() === stage.getAckedCount())) {
-        // If we've reached the flush limit and are not already in the middle of sending,
-        // kick off another round
-        stage.sendServerCommand(this.builder.getClientState().connectionManager)
-      }    
-    }
-  }
-
-  enqueueMessage(msg: string) {
-    if (this.builder.getStage() instanceof PublicMessageStage) {
-      super.enqueueMessage(msg)
-    }
-  }
-
-}
-
-export class JoinChannelStage extends Stage {
-
-  readonly channelName: string
-  readonly userName: string
-
-  constructor(channelName: string, userName: string, builder: ClientStateBuilder) {
-    super("joinPublicChannel", builder)
-    this.channelName = channelName
-    this.userName = userName
-  }
-
-  sendServerCommand(connectionManager: ConnectionManager) {
-    connectionManager.sendDatum({
-      type: 'join',
-      userName: this.userName,
-      channelName: this.channelName,
-      fromPublicKey: this.builder.getClientState().keyPair.getPublicKey(),
-    })
-  }
-
-  parseReplyToNextBuilder(dataJSON: JSONDatum) {
-    if (dataJSON.type === 'success') {
-      console.log("server success received")
-      // We stay in this state indefinitely
-      // TODO: allow enqueueUserDatum to send close command to server
-      // and to handle here
-      return this.builder.toNextBuilder((builder: ClientStateBuilder) => {
-        return new PublicMessageStage(this.channelName, this.userName, builder)
-      })
-    } else {
-      console.error("Received unexpected message", JSON.stringify(dataJSON))
-      return this.builder;
-    }
-  }
-
-}
+import { Secp256k1KeyPair } from '../keys'
 
 export class PublicMessageStage extends Stage {
 
@@ -84,7 +17,7 @@ export class PublicMessageStage extends Stage {
   private ackedCount: number
 
   constructor(channelName: string, userName: string, builder: ClientStateBuilder) {
-    super("publicMessage", builder)
+    super('publicMessage', builder)
     this.channelName = channelName
     this.userName = userName
     this.sentCount = 0
@@ -121,11 +54,11 @@ export class PublicMessageStage extends Stage {
       // if we've reached here, we've successfully sent the message
       // that was first in sendServerCommand
       this.builder.client.popFirstMessage()
-      
+
       // keep emptying the queue
       this.sendServerCommand(this.builder.getClientState().connectionManager)
     } else if (dataJSON.type === 'error') {
-      console.log("failed to send a message")
+      console.log('failed to send a message') // eslint-disable-line no-console
     }
     // stay in this stage forever
     // TODO make a disconnect stage if we want to allow human users
@@ -134,3 +67,80 @@ export class PublicMessageStage extends Stage {
   }
 
 }
+
+export class JoinChannelStage extends Stage {
+
+  readonly channelName: string
+  readonly userName: string
+
+  constructor(channelName: string, userName: string, builder: ClientStateBuilder) {
+    super('joinPublicChannel', builder)
+    this.channelName = channelName
+    this.userName = userName
+  }
+
+  sendServerCommand(connectionManager: ConnectionManager) {
+    connectionManager.sendDatum({
+      type: 'join',
+      userName: this.userName,
+      channelName: this.channelName,
+      fromPublicKey: this.builder.getClientState().keyPair.getPublicKey(),
+    })
+  }
+
+  parseReplyToNextBuilder(dataJSON: JSONDatum) {
+    if (dataJSON.type === 'success') {
+      console.log('server success received') // eslint-disable-line no-console
+      // We stay in this state indefinitely
+      // TODO: allow enqueueUserDatum to send close command to server
+      // and to handle here
+
+      /* eslint-disable max-len */
+      return this.builder.toNextBuilder(
+        (builder: ClientStateBuilder) => new PublicMessageStage(this.channelName, this.userName, builder),
+      )
+      /* eslint-enable max-len */
+    }
+    console.error('Received unexpected message', JSON.stringify(dataJSON)) // eslint-disable-line no-console
+    return this.builder;
+
+  }
+
+}
+
+export class PublicChannelClient extends Client {
+
+  constructor(
+    channelName: string,
+    userName: string,
+    connMan: ConnectionManager,
+    flushLimit?: integer,
+    keyPair?: Secp256k1KeyPair,
+  ) {
+    super(
+      connMan,
+      List([
+        RequestChallengeStageCreator,
+        (builder: ClientStateBuilder) => new JoinChannelStage(channelName, userName, builder),
+        (builder: ClientStateBuilder) => new PublicMessageStage(channelName, userName, builder),
+      ]),
+      flushLimit,
+      keyPair,
+    )
+  }
+
+  triggerQueueProcessing() {
+    const stage = this.builder.getStage()
+    if (stage instanceof PublicMessageStage) {
+      if ((this.messageQueue.count() >= this.flushLimit)
+        && (stage.getSentCount() === stage.getAckedCount())) {
+        // If we've reached the flush limit and are not already in the middle of sending,
+        // kick off another round
+        stage.sendServerCommand(this.builder.getClientState().connectionManager)
+      }
+    }
+  }
+
+}
+
+export default PublicChannelClient

@@ -20,5 +20,9 @@
         "@typescript-eslint"
     ],
     "rules": {
+        "semi": "off",
+        "lines-between-class-members": "off",
+        "padded-blocks": "off",
+        "eol-last": "off"
     }
 }

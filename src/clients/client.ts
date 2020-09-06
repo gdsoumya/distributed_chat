@@ -1,16 +1,14 @@
 // A top-level client, which you can subclass to be a Bot, PublicChannel, PrivateMessage client.
-'use strict'
-
-import { List, Map } from 'immutable'
-import secp256k1 from 'secp256k1'
-const randombytes = require('randombytes')
-import { assert } from 'chai'
+/* eslint-disable max-classes-per-file */
+import { List } from 'immutable'
 
 import { ConnectionManager } from '../connmans/connMan'
-import { Stage } from '../stages/stage'
-import { Secp256k1KeyPair, Secp256k1Signature, Secp256k1PublicKey } from '../keys'
-import { StageChangeListener, DatumListener, JSONDatum, StageCreator, integer } from '../types'
+import { Secp256k1KeyPair, Secp256k1PublicKey } from '../keys'
+import {
+  DatumListener, JSONDatum, StageCreator, integer, StageChangeListener, StageChangeListenerId,
+} from '../types'
 import { ClientStateBuilder } from '../builder'
+import { Stage } from '../stages/stage'
 
 export interface ClientView {
   getPublicKey: () => Secp256k1PublicKey
@@ -32,7 +30,7 @@ export class ClientState {
     connectionManager: ConnectionManager,
     remainingStageCreators: List<StageCreator>,
     builder: ClientStateBuilder,
-    ) {
+  ) {
     this.keyPair = keyPair
     this.connectionManager = connectionManager
     this.remainingStageCreators = remainingStageCreators
@@ -53,18 +51,24 @@ export abstract class Client {
   readonly connectionManager: ConnectionManager
   protected builder: ClientStateBuilder
   protected messageQueue: List<JSONDatum>
+  protected preStageListenerMap: Map<string, List<StageChangeListener>>
+  protected postStageListenerMap: Map<string, List<StageChangeListener>>
 
   constructor(
     connectionManager: ConnectionManager,
-    initialStageCreators: List<StageCreator>, 
+    initialStageCreators: List<StageCreator>,
     flushLimit: integer = Client.FLUSH_LIMIT,
-    ) {
+    keyPair?: Secp256k1KeyPair,
+  ) {
 
     this.connectionManager = connectionManager
     this.messageQueue = List<JSONDatum>()
     this.flushLimit = flushLimit
 
-    if (initialStageCreators.size == 0) {
+    this.preStageListenerMap = new Map()
+    this.postStageListenerMap = new Map()
+
+    if (initialStageCreators.size === 0) {
       throw new Error('Clients must have at least one initial stage creator to start.')
     }
 
@@ -72,7 +76,7 @@ export abstract class Client {
     connectionManager.addDatumListener(this.getConnectionListener())
 
     this.builder = new ClientStateBuilder(
-      new Secp256k1KeyPair(), // TODO In the future, we may wish to allow an existing private key
+      keyPair || new Secp256k1KeyPair(),
       connectionManager,
       initialStageCreators.remove(0),
       initialStageCreators.first(),
@@ -80,12 +84,71 @@ export abstract class Client {
     )
   }
 
+  getBuilder(): ClientStateBuilder {
+    return this.builder
+  }
+
+  // Register the current listener
+  addStageListener(
+    preStageName: string,
+    postStageName: string,
+    listener: StageChangeListener,
+  ): StageChangeListenerId {
+    const preListeners = this.preStageListenerMap.get(preStageName) || List()
+    this.preStageListenerMap = this.preStageListenerMap.set(
+      preStageName, preListeners.push(listener),
+    )
+    const postListeners = this.postStageListenerMap.get(postStageName) || List()
+    this.postStageListenerMap = this.postStageListenerMap.set(
+      postStageName, postListeners.push(listener),
+    )
+    return new StageChangeListenerId(
+      preStageName,
+      preListeners.count() as integer,
+      postStageName,
+      postListeners.count() as integer,
+    )
+  }
+
+  async getAndWaitForPromise(
+    preStageName: string,
+    postStageName: string,
+    listener: StageChangeListener,
+  ) {
+    return new Promise((resolve, reject) => {
+      const wrappedListener = (preStage: Stage, postStage: Stage, userDatum: JSONDatum) => {
+        try {
+          const result = listener(preStage, postStage, userDatum)
+          resolve(true)
+        } catch (e) {
+          reject(e)
+        }
+      }
+      const listenerId = this.addStageListener(preStageName, postStageName, wrappedListener)
+      this.removeStageListener(listenerId)
+    })
+  }
+
+  removeStageListener(listenerId: StageChangeListenerId) {
+    const preListeners = this.preStageListenerMap.get(listenerId.preStageName) || List()
+    this.preStageListenerMap = this.preStageListenerMap.set(
+      listenerId.preStageName,
+      preListeners.remove(listenerId.preStageCount),
+    );
+
+    const postListeners = this.postStageListenerMap.get(listenerId.postStageName) || List()
+    this.postStageListenerMap = this.postStageListenerMap.set(
+      listenerId.postStageName,
+      postListeners.remove(listenerId.postStageCount),
+    );
+  }
+
   getFirstMessage(): JSONDatum {
     if (!this.messageQueue.isEmpty()) {
       return this.messageQueue.first()
-    } else {
-      return { type: 'empty', fromPublicKey: this.builder.getClientState().keyPair.getPublicKey().toHexString() }
     }
+    return { type: 'empty', fromPublicKey: this.builder.getClientState().keyPair.getPublicKey().toHexString() }
+
   }
 
   popFirstMessage() {
@@ -95,7 +158,7 @@ export abstract class Client {
   isMessageQueueEmpty() {
     return this.messageQueue.isEmpty()
   }
-  
+
   /**
    * Kick off the first stage, and the request-response cycle,
    * after the connection is open.
@@ -116,13 +179,13 @@ export abstract class Client {
 
   protected enqueueUserDatum(datum: JSONDatum) {
     this.messageQueue = this.messageQueue.push(datum)
-    //this.triggerQueueProcessing()
+    // this.triggerQueueProcessing()
   }
 
   enqueueMessage(msg: string) {
     this.enqueueUserDatum({
       type: 'msg',
-      msg: msg,
+      msg,
       fromPublicKey: this.builder.getClientState().keyPair.getPublicKey().toHexString(),
     })
   }
@@ -131,12 +194,21 @@ export abstract class Client {
     return (datum: JSONDatum) => {
       try {
         const newBuilder = this.builder.getStage().parseReplyToNextBuilder(datum)
+
+        // fire off any listeners
+        const preStage = this.builder.getStage()
+        const postStage = newBuilder.getStage()
+        const preListeners = this.preStageListenerMap.get(preStage.name)
+        const postListeners = this.postStageListenerMap.get(postStage.name)
+        preListeners?.forEach((listener) => listener(preStage, postStage, datum))
+        postListeners?.forEach((listener) => listener(preStage, postStage, datum))
+
         this.builder = newBuilder
         // Immediately start the new stage
         this.builder.startStage()
 
-      } catch(e) {
-        console.error('ERROR: ', JSON.stringify(e.toString()))
+      } catch (e) {
+        console.error('Client Message Listener ERROR: ', JSON.stringify(e.toString())) // eslint-disable-line no-console
       }
     }
   }

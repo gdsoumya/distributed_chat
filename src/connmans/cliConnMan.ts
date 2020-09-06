@@ -1,7 +1,8 @@
-const net = require('net');
+import { Socket as TCPSocket } from 'net'
 import { ConnectionManager } from './connMan';
 import { integer, MessageListener } from '../types'
-import { Socket as TCPSocket } from 'net'
+
+const net = require('net');
 
 /**
  * How to instantiate a CommandLineClient
@@ -26,7 +27,7 @@ import { Socket as TCPSocket } from 'net'
 export class CommandLineConnectionManager extends ConnectionManager {
 
   private tcpSocket: TCPSocket
-  
+
   constructor(host: string, port: integer) {
     super(() => new net.Socket(), host, port);
 
@@ -38,12 +39,12 @@ export class CommandLineConnectionManager extends ConnectionManager {
     this.tcpSocket.write(jsonString)
     // Add a 'close' event handler for the client socket
     this.tcpSocket.on('close', () => {
-      console.log('Client closed');
+      console.log('Client closed'); // eslint-disable-line no-console
       process.exit();
     });
 
     this.tcpSocket.on('error', (err) => {
-      console.error(err);
+      console.error(err); // eslint-disable-line no-console
       process.exit();
     });
   }
@@ -57,12 +58,19 @@ export class CommandLineConnectionManager extends ConnectionManager {
 
   }
 
+  stop() {
+    // TODO: Find a way to expect an empty stop() method without using this
+    return this.tcpSocket
+  }
+
   /**
-	 * Add a message listener callback function of the form
-	 * (jsonData) => { ... }
-	 * The net library listens on the event called `data`
-	 */
+   * Add a message listener callback function of the form
+   * (jsonData) => { ... }
+   * The net library listens on the event called `data`
+   */
   addMessageListener(listener: MessageListener) {
     this.tcpSocket.on('data', listener);
   }
-};
+}
+
+export default CommandLineConnectionManager

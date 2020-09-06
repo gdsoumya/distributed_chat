@@ -1,4 +1,5 @@
 import { List } from 'immutable';
+import { assert } from 'console';
 import { StageCreator } from './types';
 import { Stage } from './stages/stage';
 import { ClientState, Client } from './clients/client';
@@ -27,6 +28,9 @@ export class ClientStateBuilder {
       const currentStageCreator: StageCreator = (nextStageCreator !== null) ? nextStageCreator : stageCreators.first();
       const remainingStageCreators = (nextStageCreator !== null) ? stageCreators : stageCreators.remove(0);
       /* eslint-enable max-len */
+
+      console.log('REMAINING STAGE CREATORS')
+      remainingStageCreators.forEach((stage) => console.log(stage.name))
 
       const cs = new ClientState(
         keyPair,
@@ -59,8 +63,11 @@ export class ClientStateBuilder {
       const previousState = this.getClientState();
       const nextStageCreator = _nextStageCreator || previousState.remainingStageCreators.first();
 
+      assert(typeof nextStageCreator === 'function',
+        `no remaining stage creators from ${this.getStage().name}`)
+
       /* eslint-disable max-len */
-      const remainingStageCreators = _nextStageCreator ? previousState.remainingStageCreators.remove(0) : previousState.remainingStageCreators;
+      const remainingStageCreators = _nextStageCreator ? previousState.remainingStageCreators : previousState.remainingStageCreators.remove(0)
       /* eslint-enable max-len */
 
       const newBuilder = new ClientStateBuilder(

@@ -12,7 +12,7 @@ export const MessageConsoleLogger = (_data: string) => {
     if (data.private) console.log(`${data.uname}:${data.pk}:- ${msg}`);
     else console.log(`${data.uname}:${data.cname}- ${msg}`);
   } else if (data.type === 'error') {
-    console.log(`ERROR : ${msg}`);
+    console.log(`Server ERROR : ${msg}`);
   } else if (data.type === 'success') {
     console.log(`${msg}`);
   } else if (data.type === 'verify') {
