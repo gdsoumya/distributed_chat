@@ -13,11 +13,12 @@ jobs:
       - run: pwd && ls && yarn
       - run: yarn build
       - run: yarn lint
-      - run: cd web; yarn; yarn lint
+      - run: cd packages/client; yarn lint:ts
+      - run: cd packages/web; yarn; yarn lint
       - run:
-          command: . ~/.profile; node server/scripts/fullServer.js 127.0.0.1 8545 8546 30303
+          command: . ~/.profile; node packages/server/scripts/fullServer.js 127.0.0.1 8545 8546 30303
           background: true
       - run:
           shell: /bin/sh
           command: |
-            yarn test
+            cd packages/client; yarn test

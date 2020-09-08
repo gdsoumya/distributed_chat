@@ -1,0 +1,30 @@
+{
+  "name": "darkchat-server",
+  "version": "0.3.0",
+  "description": "Server (raw TCP socket and websocket) for Darkchat",
+  "keywords": [
+    "darkchat",
+    "server"
+  ],
+  "author": "GD Soumya <148553+cryptogoth@users.noreply.github.com>",
+  "homepage": "https://github.com/gdsoumya/distributed_chat#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "directories": {
+    "scripts": "scripts",
+    "test": "tests"
+  },
+  "files": [
+    "index.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gdsoumya/distributed_chat.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/gdsoumya/distributed_chat/issues"
+  }
+}
