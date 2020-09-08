@@ -18,17 +18,17 @@ import { ClientStateBuilder } from '../builder'
  */
 export abstract class Stage {
 
-  readonly name: string
+  readonly stageName: string
   readonly builder: ClientStateBuilder
 
   /**
    * Construct a new Client pipeline stage
-   * @arg name a unique name identifying this stage
+   * @arg stageName a unique name identifying this stage
    * @arg clientState the client state when this stage was created,
    * i.e. at the end of the previous stage.
    */
-  constructor(name: string, builder: ClientStateBuilder) {
-    this.name = name
+  constructor(stageName: string, builder: ClientStateBuilder) {
+    this.stageName = stageName
     this.builder = builder
   }
 

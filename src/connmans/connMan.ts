@@ -70,7 +70,7 @@ export abstract class ConnectionManager {
       toPublicKey: toPublicKey && toPublicKey.toHexString(),
       cname: channelName,
     })
-    console.log('sendDatum', jsonString) // eslint-disable-line no-console
+    // console.log('sendDatum', jsonString) // eslint-disable-line no-console
     this.send(jsonString);
   }
 

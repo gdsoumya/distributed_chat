@@ -120,16 +120,17 @@ const BaseServer = class {
     if (toPublicKey && toPublicKey in this.client_list) {
       this.client_list[toPublicKey].write(data);
     } else if (chn && chn in this.channel_list) {
-      const channels = Object.entries(this.channel_list[chn])
-      channels.forEach((key, sock) => {
+      const channels = Object.values(this.channel_list[chn])
+      channels.forEach((sock) => {
         if (src !== sock) {
           sock.write(data);
         }
       });
     }
-    this.peer_list.forEach((peer) => {
-      if (peer !== src) {
-        this.peer_list[peer].write(`${chn}**@#@${mid}**@#@${data}`);
+    const peers = Object.values(this.peer_list)
+    peers.forEach(([peerSock]) => {
+      if (peerSock !== src) {
+        peerSock.write(`${chn}**@#@${mid}**@#@${data}`);
       }
     });
   }
@@ -227,7 +228,7 @@ const BaseServer = class {
         return;
       }
       console.log('pushing message', client.id, ch.uname, ch.msg); // eslint-disable-line no-console
-      const mid = this.genMIG();
+      const mid = BaseServer.genMIG();
       this.msg_list[mid] = 1;
       this.pushMessage(sock, mid, data, ch.cname);
       sock.write(JSON.stringify({ type: 'success', msg: 'MESSAGE SENT' }));

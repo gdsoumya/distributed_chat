@@ -2,6 +2,7 @@
 /* eslint-disable max-classes-per-file */
 import { List } from 'immutable'
 
+import { assert } from 'chai'
 import { ConnectionManager } from '../connmans/connMan'
 import { Secp256k1KeyPair, Secp256k1PublicKey } from '../keys'
 import {
@@ -94,6 +95,7 @@ export abstract class Client {
     postStageName: string,
     listener: StageChangeListener,
   ): StageChangeListenerId {
+
     const preListeners = this.preStageListenerMap.get(preStageName) || List()
     this.preStageListenerMap = this.preStageListenerMap.set(
       preStageName, preListeners.push(listener),
@@ -102,6 +104,7 @@ export abstract class Client {
     this.postStageListenerMap = this.postStageListenerMap.set(
       postStageName, postListeners.push(listener),
     )
+
     return new StageChangeListenerId(
       preStageName,
       preListeners.count() as integer,
@@ -110,7 +113,18 @@ export abstract class Client {
     )
   }
 
-  async getAndWaitForPromise(
+  getListenerFromId(listenerId: StageChangeListenerId): StageChangeListener {
+    const preListeners = this.preStageListenerMap.get(listenerId.preStageName)
+    const postListeners = this.postStageListenerMap.get(listenerId.postStageName)
+    const preListener = preListeners?.get(listenerId.preStageCount)
+    const postListener = postListeners?.get(listenerId.postStageCount)
+    if ((preListener === undefined) || (postListener === undefined)) {
+      throw new Error(`No listener found for ID ${listenerId.toString()}`)
+    }
+    return preListener
+  }
+
+  addListenerWrapPromise(
     preStageName: string,
     postStageName: string,
     listener: StageChangeListener,
@@ -119,13 +133,13 @@ export abstract class Client {
       const wrappedListener = (preStage: Stage, postStage: Stage, userDatum: JSONDatum) => {
         try {
           const result = listener(preStage, postStage, userDatum)
-          resolve(true)
+          resolve(result)
         } catch (e) {
           reject(e)
         }
       }
-      const listenerId = this.addStageListener(preStageName, postStageName, wrappedListener)
-      this.removeStageListener(listenerId)
+      this.addStageListener(preStageName, postStageName, wrappedListener)
+      return wrappedListener
     })
   }
 
@@ -198,10 +212,10 @@ export abstract class Client {
         // fire off any listeners
         const preStage = this.builder.getStage()
         const postStage = newBuilder.getStage()
-        const preListeners = this.preStageListenerMap.get(preStage.name)
-        const postListeners = this.postStageListenerMap.get(postStage.name)
-        preListeners?.forEach((listener) => listener(preStage, postStage, datum))
-        postListeners?.forEach((listener) => listener(preStage, postStage, datum))
+        const preListeners = this.preStageListenerMap.get(preStage.stageName) || List()
+        const postListeners = this.postStageListenerMap.get(postStage.stageName) || List()
+        const listeners = preListeners.filter((filter) => postListeners.includes(filter))
+        listeners.forEach((listener) => listener(preStage, postStage, datum))
 
         this.builder = newBuilder
         // Immediately start the new stage

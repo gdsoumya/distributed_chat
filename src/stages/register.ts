@@ -12,7 +12,7 @@ export class SignChallengeStage extends Stage {
   challengeSig: Secp256k1Signature
 
   constructor(challengeSig: Secp256k1Signature, builder: ClientStateBuilder) {
-    super('sign', builder)
+    super('signChallenge', builder)
     this.challengeSig = challengeSig
   }
 

@@ -29,9 +29,6 @@ export class ClientStateBuilder {
       const remainingStageCreators = (nextStageCreator !== null) ? stageCreators : stageCreators.remove(0);
       /* eslint-enable max-len */
 
-      console.log('REMAINING STAGE CREATORS')
-      remainingStageCreators.forEach((stage) => console.log(stage.name))
-
       const cs = new ClientState(
         keyPair,
         connectionManager,
@@ -64,7 +61,7 @@ export class ClientStateBuilder {
       const nextStageCreator = _nextStageCreator || previousState.remainingStageCreators.first();
 
       assert(typeof nextStageCreator === 'function',
-        `no remaining stage creators from ${this.getStage().name}`)
+        `no remaining stage creators from ${this.getStage().stageName}`)
 
       /* eslint-disable max-len */
       const remainingStageCreators = _nextStageCreator ? previousState.remainingStageCreators : previousState.remainingStageCreators.remove(0)

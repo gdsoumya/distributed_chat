@@ -11,17 +11,15 @@ import { RequestChallengeStageCreator } from '../stages/register'
 export class PrivateMessageStage extends Stage {
 
   readonly toPublicKey: Secp256k1PublicKey
-  private messageQueue: List<JSONDatum>
 
   constructor(toPublicKey: Secp256k1PublicKey, builder: ClientStateBuilder) {
     super('privateMessage', builder)
-    this.messageQueue = List([])
     this.toPublicKey = toPublicKey
   }
 
   sendServerCommand(connectionManager: ConnectionManager) {
-    if (!this.messageQueue.isEmpty()) {
-      const first: JSONDatum = this.messageQueue.first()
+    if (!this.builder.client.isMessageQueueEmpty()) {
+      const first: JSONDatum = this.builder.client.getFirstMessage()
       connectionManager.sendDatum({
         type: 'msg',
         msg: first.msg,
@@ -31,14 +29,10 @@ export class PrivateMessageStage extends Stage {
     }
   }
 
-  enqueueUserDatum(message: JSONDatum) {
-    this.messageQueue = this.messageQueue.push(message)
-  }
-
   parseReplyToNextBuilder(dataJSON: JSONDatum) {
-    if (dataJSON.type === 'success') {
+    if (dataJSON.type === 'success' || dataJSON.type === 'msg') {
       // go and send the next message in the queue
-      this.messageQueue = this.messageQueue.remove(0)
+      this.builder.client.popFirstMessage()
       this.sendServerCommand(this.builder.getClientState().connectionManager)
     } else if (dataJSON.type === 'error') {
       console.error('failed to send a message') // eslint-disable-line no-console

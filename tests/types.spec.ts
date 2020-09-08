@@ -1,5 +1,9 @@
 import { assert } from 'chai'
-import { Secp256k1PublicKey, Secp256k1PrivateKey } from '..'
+import {
+  Secp256k1PublicKey, Secp256k1PrivateKey, PublicMessageStage, integer,
+} from '..'
+import PublicChannelClient from '../src/clients/pubClient'
+import WebSocketConnectionManager from '../src/connmans/wsConnMan'
 
 describe('Darkchat types', () => { // eslint-disable-line no-undef
 
@@ -12,5 +16,15 @@ describe('Darkchat types', () => { // eslint-disable-line no-undef
     )
     assert(pubKey !== null)
     assert(keyPair !== null)
+  })
+
+  it('have correct stage names', async () => { // eslint-disable-line no-undef
+    assert.equal(PublicMessageStage.name, 'PublicMessageStage', 'PublicMessageStage has correct class name')
+    const client = new PublicChannelClient(
+      'cname', 'uname',
+      new WebSocketConnectionManager({ host: 'localhost', port: 8546 as integer }),
+    )
+    const publicMessageStage = new PublicMessageStage('channel', 'username', client.getBuilder())
+    assert.equal(publicMessageStage.stageName, 'publicMessage', 'PublicMessageStage has correct instance name')
   })
 })
