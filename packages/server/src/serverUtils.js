@@ -214,13 +214,6 @@ const BaseServer = class {
       }
       console.log(`Client successfully joined ${ch.cname}`); // eslint-disable-line no-console
       sock.write(JSON.stringify({ type: 'success', msg: `Connected to channel ${ch.cname}` }));
-<<<<<<< HEAD:src/serverUtils.js
-    }
-    else if (ch.type === 'msg') {
-      // TODO: Message must be addressed to a private DM or channel, consider returning error message here.
-      if (!ch.toPublicKey && !ch.cname) return;
-      if (ch.toPublicKey) ch.cname = '';
-=======
     } else if (ch.type === 'msg') {
       if (!ch.toPublicKey && !ch.cname) {
         sock.write(JSON.stringify({
@@ -229,7 +222,6 @@ const BaseServer = class {
         }));
       }
       /* eslint-disable max-len */
->>>>>>> typescripts:packages/server/src/serverUtils.js
       if (ch.cname && !(ch.cname in this.channel_list && client.id in this.channel_list[ch.cname])) {
         /* eslint-enable max-len */
         sock.write(JSON.stringify({ type: 'error', msg: 'JOIN CHANNEL FIRST' }));
