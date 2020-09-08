@@ -6,10 +6,10 @@
     "darkchat",
     "server"
   ],
-  "author": "GD Soumya <148553+cryptogoth@users.noreply.github.com>",
+  "author": "Soumya Ghosh Dastidar <44349253+gdsoumya@users.noreply.github.com>",
   "homepage": "https://github.com/gdsoumya/distributed_chat#readme",
   "license": "MIT",
-  "main": "index.js",
+  "main": "src/server.js",
   "directories": {
     "scripts": "scripts",
     "test": "tests"
@@ -22,9 +22,18 @@
     "url": "git+https://github.com/gdsoumya/distributed_chat.git"
   },
   "scripts": {
+    "lint": "eslint -c .eslintrc.json --fix src/*.js",
+    "start": "node scripts/fullServer.js 127.0.0.1 8545 8546 30303",
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "bugs": {
     "url": "https://github.com/gdsoumya/distributed_chat/issues"
+  },
+  "dependencies": {
+    "eslint-config-airbnb": "^18.2.0",
+    "secp256k1": "^4.0.2",
+    "text-encoder": "^0.0.4",
+    "uuid": "^8.3.0",
+    "ws": "^7.3.1"
   }
 }

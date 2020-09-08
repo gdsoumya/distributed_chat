@@ -11,7 +11,7 @@ jobs:
     steps:
       - checkout
       - run: . ~/.profile; lerna bootstrap
-      - run: cd packages/client; yarn lint:ts
+      - run: cd packages/client; yarn build; yarn lint
       - run: cd packages/web; yarn; yarn lint
       - run:
           command: . ~/.profile; node packages/server/scripts/fullServer.js 127.0.0.1 8545 8546 30303

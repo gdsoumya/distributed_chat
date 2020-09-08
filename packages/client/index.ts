@@ -21,12 +21,8 @@ export * from './src/clients/pubClient'
 export * from './src/clients/privClient'
 export * from './src/keys'
 export * from './src/types'
-const server = require('./server/server')
-const serverUtils = require('./server/serverUtils')
 
 module.exports = {
-  ...server,
-  ...serverUtils,
   ...cliConnMan,
   ...wsConnMan,
   ...connMan,

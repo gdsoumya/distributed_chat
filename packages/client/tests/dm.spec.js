@@ -54,7 +54,7 @@ describe('Encrypted direct messages', function () {
     });
     /* eslint-disable no-undef */
     it('exchanges two encrypted DMs between clients', function () { return __awaiter(void 0, void 0, void 0, function () {
-        var keyPair1, keyPair2, client1, client2, expected2Message1, expected2Message2, expected2Message3, expected1Message, prom1, expectedMessages, prom2, expected2Messages, listenerFunc2, prom3, prom4, e_1, prom5;
+        var keyPair1, keyPair2, client1, client2, expected2Message1, expected2Message2, expected2Message3, expected1Message, prom1, expectedMessages, prom2, expected2Messages, listenerFunc2, prom3, prom4, e_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -76,7 +76,7 @@ describe('Encrypted direct messages', function () {
                     ];
                     prom2 = client1.addListenerWrapPromise('privateMessage', 'privateMessage', function (preStage, postStage, userDatum) {
                         var nextMsg = expectedMessages.pop();
-                        console.log("Client 1 MSG: " + userDatum.msg + " " + nextMsg + " " + (userDatum.msg === nextMsg));
+                        // console.log(`Client 1 MSG: ${userDatum.msg} ${nextMsg} ${userDatum.msg === nextMsg}`)
                         chai_1.assert.equal(userDatum.msg, nextMsg, 'Client 1 privateMessage mismatch');
                     });
                     expected2Messages = [
@@ -87,7 +87,7 @@ describe('Encrypted direct messages', function () {
                     ];
                     listenerFunc2 = function (preStage, postStage, userDatum) {
                         var nextMsg = expected2Messages.pop();
-                        console.log("Client 2 MSG: " + userDatum.msg + " " + nextMsg + " " + (userDatum.msg === nextMsg));
+                        // console.log(`Client 2 MSG: ${userDatum.msg} ${nextMsg} ${userDatum.msg === nextMsg}`)
                         chai_1.assert(userDatum.msg === nextMsg, userDatum.msg + " !== " + nextMsg);
                         chai_1.assert.equal(userDatum.msg, nextMsg, 'Client 2 privateMessage mismatch');
                     };
@@ -98,14 +98,18 @@ describe('Encrypted direct messages', function () {
                     return [4 /*yield*/, prom1]; // client1 register as DM
                 case 1:
                     _a.sent(); // client1 register as DM
-                    return [4 /*yield*/, prom2]; // client1 MESSAGE SENT
+                    return [4 /*yield*/, prom2
+                        // console.log('PROM 2')
+                    ]; // client1 MESSAGE SENT
                 case 2:
                     _a.sent(); // client1 MESSAGE SENT
-                    console.log('PROM 2');
-                    return [4 /*yield*/, prom3]; // client2 expected2Message1
+                    // console.log('PROM 2')
+                    return [4 /*yield*/, prom3
+                        // console.log('PROM 3')
+                    ]; // client2 expected2Message1
                 case 3:
+                    // console.log('PROM 2')
                     _a.sent(); // client2 expected2Message1
-                    console.log('PROM 3');
                     prom4 = client2.addListenerWrapPromise('privateMessage', 'privateMessage', listenerFunc2);
                     client1.enqueueMessage(expected2Message2);
                     client1.getBuilder().startStage();
@@ -119,9 +123,7 @@ describe('Encrypted direct messages', function () {
                 case 6:
                     e_1 = _a.sent();
                     return [3 /*break*/, 7];
-                case 7:
-                    prom5 = client2.addListenerWrapPromise('privateMessage', 'privateMessage', listenerFunc2);
-                    return [2 /*return*/];
+                case 7: return [2 /*return*/];
             }
         });
     }); });

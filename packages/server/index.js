@@ -1,7 +1,7 @@
-const server = require('./server');
-const serverUtils = require('./serverUtils');
+const server = require('./src/server')
+const serverUtils = require('./src/serverUtils')
 
 module.exports = {
   ...server,
   ...serverUtils,
-};
+}
