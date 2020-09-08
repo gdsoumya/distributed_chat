@@ -97,6 +97,7 @@ export class JoinChannelStage extends Stage {
 
       /* eslint-disable max-len */
       return this.builder.toNextBuilder(
+        dataJSON,
         (builder: ClientStateBuilder) => new PublicMessageStage(this.channelName, this.userName, builder),
       )
       /* eslint-enable max-len */

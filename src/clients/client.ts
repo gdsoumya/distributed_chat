@@ -2,7 +2,6 @@
 /* eslint-disable max-classes-per-file */
 import { List } from 'immutable'
 
-import { assert } from 'chai'
 import { ConnectionManager } from '../connmans/connMan'
 import { Secp256k1KeyPair, Secp256k1PublicKey } from '../keys'
 import {
@@ -24,17 +23,20 @@ export class ClientState {
   readonly keyPair: Secp256k1KeyPair
   readonly connectionManager: ConnectionManager
   readonly remainingStageCreators: List<StageCreator>
+  readonly lastUserDatum: JSONDatum
   readonly builder: ClientStateBuilder
 
   constructor(
     keyPair: Secp256k1KeyPair,
     connectionManager: ConnectionManager,
     remainingStageCreators: List<StageCreator>,
+    lastUserDatum: JSONDatum,
     builder: ClientStateBuilder,
   ) {
     this.keyPair = keyPair
     this.connectionManager = connectionManager
     this.remainingStageCreators = remainingStageCreators
+    this.lastUserDatum = lastUserDatum
     this.builder = builder
   }
 
@@ -76,11 +78,14 @@ export abstract class Client {
     // Register this client as the primary 'message' eventHandler for connection
     connectionManager.addDatumListener(this.getConnectionListener())
 
+    const initialKeyPair = keyPair || new Secp256k1KeyPair()
+
     this.builder = new ClientStateBuilder(
-      keyPair || new Secp256k1KeyPair(),
+      initialKeyPair,
       connectionManager,
       initialStageCreators.remove(0),
       initialStageCreators.first(),
+      { type: 'initial', fromPublicKey: initialKeyPair.getPublicKey().toHexString() },
       this,
     )
   }
@@ -208,6 +213,7 @@ export abstract class Client {
     return (datum: JSONDatum) => {
       try {
         const newBuilder = this.builder.getStage().parseReplyToNextBuilder(datum)
+        const { lastUserDatum } = newBuilder.getClientState()
 
         // fire off any listeners
         const preStage = this.builder.getStage()
@@ -215,14 +221,17 @@ export abstract class Client {
         const preListeners = this.preStageListenerMap.get(preStage.stageName) || List()
         const postListeners = this.postStageListenerMap.get(postStage.stageName) || List()
         const listeners = preListeners.filter((filter) => postListeners.includes(filter))
-        listeners.forEach((listener) => listener(preStage, postStage, datum))
+        listeners.forEach((listener) => listener(preStage, postStage, lastUserDatum))
 
         this.builder = newBuilder
         // Immediately start the new stage
         this.builder.startStage()
 
       } catch (e) {
-        console.error('Client Message Listener ERROR: ', JSON.stringify(e.toString())) // eslint-disable-line no-console
+        /* eslint-disable-line no-console */
+        console.error('Client Message Listener ERROR: ', JSON.stringify(e.toString()))
+        console.error(e.stack)
+        /* eslint-enable-line no-console */
       }
     }
   }

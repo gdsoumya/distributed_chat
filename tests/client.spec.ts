@@ -33,6 +33,7 @@ describe('WebSocket clients', () => { // eslint-disable-line no-undef
     const expectedMessages = [
       'hello2',
       'MESSAGE SENT',
+      'Connected to channel wizards',
     ]
 
     const listenerFunc = (preStage: Stage, postStage: Stage, userDatum: JSONDatum) => {

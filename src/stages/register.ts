@@ -27,10 +27,14 @@ export class SignChallengeStage extends Stage {
 
   parseReplyToNextBuilder(datum: JSONDatum) {
     if (datum.type === 'success') {
+      /* eslint-disable no-console */
       console.log(`Successfully connected client ${this.builder.getClientState().keyPair.getPublicKey().toHexString()}`)
-      return this.builder.toNextBuilder()
+      /* eslint-enable no-console */
+      return this.builder.toNextBuilder(datum)
     }
+    /* eslint-disable no-console */
     console.error('Received unexpected message', JSON.stringify(datum))
+    /* eslint-enable no-console */
     return this.builder
 
   }
@@ -58,7 +62,10 @@ export class RequestChallengeStage extends Stage {
       const challengeSig = this.builder.getClientState().keyPair.sign(datum.msg)
       console.log('server success received, challengeSig ', challengeSig) // eslint-disable-line no-console
       /* eslint-disable max-len */
-      return this.builder.toNextBuilder((builder: ClientStateBuilder) => new SignChallengeStage(challengeSig, builder))
+      return this.builder.toNextBuilder(
+        datum,
+        (builder: ClientStateBuilder) => new SignChallengeStage(challengeSig, builder),
+      )
       /* eslint-disable max-len */
     }
     console.error('RequestChallenge: Received unexpected message', JSON.stringify(datum))

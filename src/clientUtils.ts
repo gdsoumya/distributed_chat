@@ -44,7 +44,7 @@ export const encryptJSON = (jsonObj: JSONObject, key: Buffer) => {
   return encryptedHexString;
 };
 
-export const decryptHexString = (encryptedHexString: string, key: Buffer) => {
+export const decryptHexString = (encryptedHexString: string, key: Buffer): string => {
   const encryptedBytes = aesjs.utils.hex.toBytes(encryptedHexString);
 
   // The counter mode of operation maintains internal state, so to

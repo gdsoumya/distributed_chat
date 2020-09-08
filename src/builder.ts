@@ -1,6 +1,6 @@
 import { List } from 'immutable';
 import { assert } from 'console';
-import { StageCreator } from './types';
+import { StageCreator, JSONDatum } from './types';
 import { Stage } from './stages/stage';
 import { ClientState, Client } from './clients/client';
 import { Secp256k1KeyPair } from './keys';
@@ -15,6 +15,8 @@ export class ClientStateBuilder {
     /* eslint-enable no-unused-vars */
     private lazyStage: Stage | StageCreator
 
+    readonly currentStageCreator: StageCreator
+
     readonly client: Client
 
     constructor(
@@ -22,6 +24,7 @@ export class ClientStateBuilder {
       connectionManager: ConnectionManager,
       stageCreators: List<StageCreator>,
       nextStageCreator: StageCreator | null = null,
+      lastUserDatum: JSONDatum,
       client: Client,
     ) {
       /* eslint-disable max-len */
@@ -33,10 +36,12 @@ export class ClientStateBuilder {
         keyPair,
         connectionManager,
         remainingStageCreators,
+        lastUserDatum,
         this,
       );
       this.lazyClientState = () => cs;
       this.lazyStage = () => currentStageCreator(this);
+      this.currentStageCreator = currentStageCreator
       this.client = client;
     }
 
@@ -56,7 +61,7 @@ export class ClientStateBuilder {
       return this.getStage().start(this.getClientState().connectionManager);
     }
 
-    toNextBuilder(_nextStageCreator?: StageCreator): ClientStateBuilder {
+    toNextBuilder(lastUserDatum: JSONDatum, _nextStageCreator?: StageCreator): ClientStateBuilder {
       const previousState = this.getClientState();
       const nextStageCreator = _nextStageCreator || previousState.remainingStageCreators.first();
 
@@ -72,6 +77,7 @@ export class ClientStateBuilder {
         previousState.connectionManager,
         remainingStageCreators,
         nextStageCreator,
+        lastUserDatum,
         previousState.builder.client,
       );
 

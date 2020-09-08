@@ -143,6 +143,11 @@ export class Secp256k1KeyPair {
     return Secp256k1Signature.fromUint8Array(sigObj.signature);
   }
 
+  getSharedKey(otherPublicKey: Secp256k1PublicKey) {
+    const uint8Array = secp256k1.ecdh(otherPublicKey.asUint8Array(), this.privateKey.asUint8Array())
+    return new Secp256k1PrivateKey(Buffer.from(uint8Array))
+  }
+
   getPublicKey() {
     return this.publicKey;
   }
