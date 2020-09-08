@@ -1,14 +1,12 @@
-'use strict'
-
+import readline from 'readline'
 import { Client } from './client'
 import { ConnectionManager } from '../connmans/connMan'
-import readline from 'readline'
-import { StageChangeListener } from '../..'
 import { RequestChallengeStageCreator } from '../stages/register'
+
 const { List } = require('immutable')
 
 export const ChatClient = class extends Client {
-	
+
   constructor(connMan: ConnectionManager) {
     super(connMan, List([RequestChallengeStageCreator]), List())
   }
@@ -24,7 +22,7 @@ export const ChatClient = class extends Client {
       if (line.toLowerCase() === 'exit') rl.close();
       this.processLine(line);
       rl.prompt();
-    }).on('close', function () {
+    }).on('close', () => {
       process.exit(0);
     });
   }
@@ -36,7 +34,7 @@ export const ChatClient = class extends Client {
         type: 'msg',
         fromPublicKey: this.builder.getClientState().keyPair.getPublicKey().toHexString(),
         toPublicKey: msg[1],
-        msg: msg.slice(2).join(' ')
+        msg: msg.slice(2).join(' '),
       })
     } else if (msg.length === 3 && msg[0].toLowerCase() === 'join') {
       this.enqueueUserDatum({
@@ -46,16 +44,22 @@ export const ChatClient = class extends Client {
         fromPublicKey: this.builder.getClientState().keyPair.getPublicKey().toHexString(),
       })
       console.log(`CHANNEL NAME : ${msg[1]}  |   USERNAME : ${msg[2]}`);
-    }
-    else if (msg.length >= 2) {
+    } else if (msg.length >= 2) {
       if (msg.length >= 3) {
         this.enqueueUserDatum({
           type: 'msg',
           fromPublicKey: this.builder.getClientState().keyPair.getPublicKey().toHexString(),
-          msg: msg.slice(2).join(' ')
+          msg: msg.slice(2).join(' '),
         })
       }
     }
   }
 
+  triggerQueueProcessing() {
+    // TODO: Is this the right thing to do, to buffer for interactive chat client
+    return this
+  }
+
 }
+
+export default ChatClient

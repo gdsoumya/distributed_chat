@@ -39,6 +39,11 @@ export class StageChangeListenerId {
     this.postStageName = postStageName
     this.postStageCount = postStageCount
   }
+
+  toString() {
+    return `StageId[${this.preStageName}-${this.preStageCount}]`
+      + `[${this.postStageName}-${this.postStageCount}]`
+  }
 }
 
 /* eslint-disable no-unused-vars */

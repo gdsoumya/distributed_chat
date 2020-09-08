@@ -77,4 +77,19 @@ export class PrivateChannelClient extends Client {
     )
   }
 
+  triggerQueueProcessing() {
+    /*
+    const stage = this.builder.getStage()
+    if (stage instanceof PrivateMessageStage) {
+      if ((this.messageQueue.count() >= this.flushLimit)
+        && (this.sentCount >= this.ackedCount)) {
+        // If we've reached the flush limit and are not already in the middle of sending,
+        // kick off another round
+        stage.sendServerCommand(this.builder.getClientState().connectionManager)
+      }
+    }
+    */
+   return this
+  }
+
 }

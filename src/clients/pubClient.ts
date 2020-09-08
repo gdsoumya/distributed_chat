@@ -131,6 +131,7 @@ export class PublicChannelClient extends Client {
   }
 
   triggerQueueProcessing() {
+    /*
     const stage = this.builder.getStage()
     if (stage instanceof PublicMessageStage) {
       if ((this.messageQueue.count() >= this.flushLimit)
@@ -140,6 +141,8 @@ export class PublicChannelClient extends Client {
         stage.sendServerCommand(this.builder.getClientState().connectionManager)
       }
     }
+    */
+   return this
   }
 
 }
