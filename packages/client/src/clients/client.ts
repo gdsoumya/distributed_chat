@@ -248,7 +248,7 @@ export abstract class Client {
           )
           listeners.forEach((listener, index) => {
             if (listener) {
-              console.log('Listeners index', index)
+              console.log('Listeners index', index, preStage.stageName, postStage.stageName)
               listener(preStage, postStage, lastUserDatum)
             }
           })
