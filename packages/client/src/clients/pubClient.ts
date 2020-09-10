@@ -63,7 +63,7 @@ export class PublicMessageStage extends Stage {
     // stay in this stage forever
     // TODO make a disconnect stage if we want to allow human users
     // to stop this client politely.
-    return this.builder
+    return this.builder.toNextBuilder(dataJSON, this.builder.currentStageCreator)
   }
 
 }
@@ -131,6 +131,7 @@ export class PublicChannelClient extends Client {
   }
 
   triggerQueueProcessing() {
+    console.log(`Message queue ${this.messageQueue.count()} flush limit ${this.flushLimit}`)
     const stage = this.builder.getStage()
     if (stage instanceof PublicMessageStage) {
       if ((this.messageQueue.count() >= this.flushLimit)
