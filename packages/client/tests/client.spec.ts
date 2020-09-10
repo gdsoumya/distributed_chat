@@ -19,9 +19,9 @@ describe('WebSocket clients', () => { // eslint-disable-line no-undef
     useWSS: false, // local instance won't have TLS enabled
   });
 
-  const client = new PublicChannelClient('wizards', 'iceking', wsc1);
+  const client = new PublicChannelClient('wizards', 'iceking', wsc1, 1 as integer);
 
-  const client2 = new PublicChannelClient('wizards', 'abracadaniel', wsc2)
+  const client2 = new PublicChannelClient('wizards', 'abracadaniel', wsc2, 1 as integer)
 
   it('has three remaining stages', async () => { // eslint-disable-line no-undef
     assert.equal(client.getBuilder().getClientState().remainingStageCreators.count(), 2,
@@ -51,11 +51,15 @@ describe('WebSocket clients', () => { // eslint-disable-line no-undef
       client.addStageListener('publicMessage', 'publicMessage', wrappedListenerFunc)
     })
 
-    await client.enqueueMessage('hello1');
-    await client2.enqueueMessage('hello2');
 
     await client.start();
     await client2.start()
+
+    setTimeout(async () => {
+      await client.enqueueMessage('hello1');
+      await client2.enqueueMessage('hello2');
+    }, 1000)
+
     await prom1
 
     // client.removeStageListener(listenerId)

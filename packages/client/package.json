@@ -1,7 +1,7 @@
 {
-  "name": "darkchat",
-  "version": "0.2.5",
-  "description": "A distributed chat system",
+  "name": "darkchat-client",
+  "version": "0.3.0",
+  "description": "Client and libraries for a private, distributed chat system",
   "main": "index.js",
   "files": [
     "index.js",
@@ -13,7 +13,7 @@
     "build": "tsc --build ."
   },
   "author": "Soumya Ghosh Dastidar",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@types/chai": "4.2.11",
     "@types/mocha": "7.0.2",
@@ -23,7 +23,7 @@
     "aes-js": "3.1.2",
     "chai": "4.2.0",
     "immutable": "4.0.0-rc.12",
-    "isomorphic-ws": "^4.0.1",
+    "isomorphic-ws": "4.0.1",
     "randombytes": "2.1.0",
     "readline": "1.3.0",
     "secp256k1": "4.0.1",
@@ -32,8 +32,6 @@
     "ws": "7.2.5"
   },
   "devDependencies": {
-    "jshint": "2.11.1",
-    "mocha": "8.0.1",
     "@types/chai": "4.2.11",
     "@types/mocha": "7.0.2",
     "@types/node": "14.0.14",
@@ -46,7 +44,9 @@
     "eslint-plugin-jsx-a11y": "6.3.1",
     "eslint-plugin-react": "7.20.6",
     "eslint-plugin-react-hooks": "4.1.0",
+    "jshint": "2.11.1",
     "lerna": "^3.22.1",
+    "mocha": "8.0.1",
     "typescript": "4.0.2",
     "typescript-eslint": "0.0.1-alpha.0"
   }

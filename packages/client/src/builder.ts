@@ -1,5 +1,5 @@
 import { List } from 'immutable';
-import { assert } from 'console';
+import { assert } from 'chai';
 import { StageCreator, JSONDatum } from './types';
 import { Stage } from './stages/stage';
 import { ClientState, Client } from './clients/client';

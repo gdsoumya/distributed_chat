@@ -77,8 +77,6 @@ describe('Encrypted direct messages', () => {
       assert.equal(userDatum.msg, nextMsg, 'Client 2 privateMessage mismatch')
     }
 
-    client1.enqueueMessage(expected2Message1)
-    // client2.enqueueMessage(expected1Message)
 
     const prom3 = client2.addListenerWrapPromise(
       'privateMessage', 'privateMessage',
@@ -89,6 +87,11 @@ describe('Encrypted direct messages', () => {
     client2.start()
 
     await prom1 // client1 register as DM
+
+    // In real life, messages are enqueued by user after client starts
+    setTimeout(() => client1.enqueueMessage(expected2Message1), 1000)
+    // client2.enqueueMessage(expected1Message)
+
     await prom2 // client1 MESSAGE SENT
 
     // console.log('PROM 2')

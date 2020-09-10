@@ -210,10 +210,10 @@ export abstract class Client {
 
   abstract triggerQueueProcessing(): void
 
-  protected enqueueUserDatum(datum: JSONDatum) {
+  enqueueUserDatum(datum: JSONDatum) {
     this.messageQueue = this.messageQueue.push(datum)
     this.sentCount = (this.sentCount + 1) as integer
-    //this.triggerQueueProcessing()
+    this.triggerQueueProcessing()
   }
 
   enqueueMessage(msg: string) {
