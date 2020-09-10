@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
-const { WebSocketClient } = require('darkchat');
+import { WebSocketConnectionManager, integer, Stage, JSONDatum, PublicChannelClient } from 'darkchat-client';
 
 const App: React.FunctionComponent = () => {
 
-  const [mode           , changeMode         ] = useState('joinChannel');
-  const [channel        , setChannel         ] = useState('');
-  const [username       , setUsername        ] = useState('');
-  const [message        , setMessage         ] = useState('');
-  const [webSocketClient, setWebSocketClient ] = useState({ send: (data: string) => {
-    throw new Error(data)
-  }});
+  const [mode           , changeMode      ] = useState('joinChannel');
+  const [channel        , setChannel      ] = useState('');
+  const [username       , setUsername     ] = useState('');
+  const [message        , setMessage      ] = useState('');
+  const [publicClient   , setPublicClient ] = useState<PublicChannelClient>();
 
   const appendChat = (text: string) => {
     let li = document.createElement('li');
@@ -21,12 +19,15 @@ const App: React.FunctionComponent = () => {
   }
 
   const registerWebSocketClient = ({username, channel}: {username: string, channel: string}) => {
-    const wsc = new WebSocketClient({
+    const wsc = new WebSocketConnectionManager({
       host: 'capetown.arcology.nyc',
-      port: 8547,
+      port: 8547 as integer,
       useWSS: true,
     });
 
+    const client = new PublicChannelClient(channel, username, wsc, 1 as integer)
+
+    /*
     wsc.on('close', (data: any) => {
       console.error('disconnected', data);
       let li = document.createElement('li');
@@ -38,37 +39,41 @@ const App: React.FunctionComponent = () => {
     wsc.on('error', (error: any) => {
       console.error('failed to connect', error);
     });
+    */
 
-    wsc.on('message', async (event : any) => {
-      console.log('received', event.data);
+    const messageListener = (preStage: Stage, postStage: Stage, userDatum: JSONDatum) => {
+     console.log('received', JSON.stringify(userDatum));
       let li = document.createElement('li');
-      // This is a Blob in the browser for some WebSocket messages
-      const jsonText = (event.data.text) ? await event.data.text() : event.data;
-      const data = JSON.parse(jsonText);
+      const data = userDatum
       const msg = data['msg'];
-      const isImage = msg.endsWith('jpg') || msg.endsWith('png') || msg.endsWith('gif');
+      const isImage = msg && (msg.endsWith('jpg') || msg.endsWith('png') || msg.endsWith('gif'));
       if(data.type==='msg')
         li.innerText = data['uname']+' : '+data['msg']
       else
-        li.innerText = data['msg']
+        li.innerText = data['msg'] || ''
       const chat = document.querySelector('#chat')
       chat && chat.append(li);
-      if (data['msg'].startsWith('http') && isImage) {
+      if (data.msg && data.msg.startsWith('http') && isImage) {
         const img = document.createElement('img');
-        img.setAttribute('src', msg);
+        img.setAttribute('src', data.msg);
         chat && chat.append(img);
       }
-    });
+    };
 
-    wsc.on('open', () => {
-      wsc.send(JSON.stringify({
-        type: 'join', uname: username, cname: channel,
-      }));
+    client.addStageListener('publicMessage', 'publicMessage', messageListener)
+
+    const openListener = (preStage: Stage, postStage: Stage, userDatum: JSONDatum) => {
       appendChat(`Connected to ${wsc.url}`);
+      console.log(JSON.stringify(userDatum))
       console.log('connected');
-    });
+    };
 
-    setWebSocketClient(wsc);
+    client.addStageListener('signChallenge','publicMessage', openListener)
+    client.start()
+
+    console.log(`Message queue`, client.flushLimit, client.isMessageQueueEmpty())
+
+    setPublicClient(client);
   }
 
   return (
@@ -126,10 +131,11 @@ const App: React.FunctionComponent = () => {
                 type="submit"
                 onClick={(evt) => {
                   evt.preventDefault();
-                  if (webSocketClient) {
-                    webSocketClient.send(JSON.stringify({
+                  if (publicClient) {
+                    publicClient.enqueueUserDatum({
+                      fromPublicKey: publicClient.getBuilder().getClientState().keyPair.getPublicKey().toHexString(),
                       type: 'msg', uname: username, msg: message,
-                    }));
+                    });
                   }
                   appendChat(message);
                   
