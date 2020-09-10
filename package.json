@@ -1,19 +1,10 @@
 {
   "name": "darkchat",
-<<<<<<< HEAD
-  "version": "0.2.6",
-  "description": "A distributed chat system with E2E Encryption for DMs",
-  "main": "index.js",
-  "files": [
-    "index.js",
-    "src"
-=======
   "version": "0.3.0",
   "description": "Monorepo for Darkchat: a private distributed chat",
   "private": true,
   "workspaces": [
     "packages/*"
->>>>>>> typescripts
   ],
   "repository": {
     "type": "git",
@@ -25,35 +16,11 @@
     "private",
     "darkchat"
   ],
-  "author": "GD Soumya, Paul Pham",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/gdsoumya/distributed_chat/issues"
   },
-  "scripts": {
-    "build:doc": "jsdoc -c .jsdoc.json --verbose",
-    "cov": "nyc.js mocha tests/",
-    "lint": "exit 0",
-    "lint:fix": "eslint --fix -c ../../.eslintrc.json *.js tests/*.js src/*.js"
-  },
-<<<<<<< HEAD
-  "author": "Soumya Ghosh Dastidar",
-  "license": "ISC",
-  "dependencies": {
-    "aes-js": "^3.1.2",
-    "chai": "^4.2.0",
-    "eslint": "6.6.0",
-    "g": "2.0.1",
-    "immutable": "4.0.0-rc.12",
-    "lodash": "4.17.19",
-    "mocha": "^8.0.1",
-    "readline": "1.3.0",
-    "secp256k1": "4.0.1",
-    "text-encoder": "0.0.4",
-    "uuid": "7.0.3",
-    "ws": "7.2.5"
-  }
-=======
+  "author": "Soumya Ghosh Dastidar, Paul Pham",
+  "license": "MIT",
   "homepage": "https://github.com/gdsoumya/distributed_chat#readme"
->>>>>>> typescripts
 }

@@ -22,7 +22,7 @@
     "url": "git+https://github.com/gdsoumya/distributed_chat.git"
   },
   "scripts": {
-    "lint": "eslint -c .eslintrc.json --fix src/*.js",
+    "lint": "eslint -c ../../.eslintrc.json --fix src/*.js",
     "start": "node scripts/fullServer.js 127.0.0.1 8545 8546 30303",
     "test": "echo \"Error: run tests from root\" && exit 1"
   },

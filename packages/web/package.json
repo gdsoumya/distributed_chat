@@ -13,23 +13,13 @@
     "@typescript-eslint/eslint-plugin": "4.0.1",
     "chai": "4.2.0",
     "darkchat": "0.2.2",
-<<<<<<< HEAD:web/package.json
-    "lodash": "4.17.19",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
-=======
     "react": "16.13.1",
     "react-dom": "16.13.1",
->>>>>>> typescripts:packages/web/package.json
     "react-scripts": "3.4.1",
     "typescript": "4.0.2"
   },
   "scripts": {
-<<<<<<< HEAD:web/package.json
-    "lint": "eslint --ext js,ts,tsx src",
-=======
     "lint": "eslint -c ./.eslintrc.ts.json --fix src/*.ts*",
->>>>>>> typescripts:packages/web/package.json
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",

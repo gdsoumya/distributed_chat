@@ -10,9 +10,7 @@ jobs:
       - image: cryptogoth/node-circle-test:49c98b3
     steps:
       - checkout
-      - run: . ~/.profile; lerna bootstrap
-      - run: cd packages/client; yarn build; yarn lint
-      - run: cd packages/web; yarn; yarn lint
+      - run: . ~/.profile; lerna bootstrap; lerna run build; lerna run lint # build before lint for TS packages
       - run:
           command: . ~/.profile; node packages/server/scripts/fullServer.js 127.0.0.1 8545 8546 30303
           background: true
