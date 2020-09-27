@@ -34,6 +34,7 @@ describe('WebSocket clients', () => { // eslint-disable-line no-undef
       'hello2',
       'MESSAGE SENT',
       'Connected to channel wizards',
+      'MESSAGE SENT',
     ]
 
     const listenerFunc = (preStage: Stage, postStage: Stage, userDatum: JSONDatum) => {
@@ -57,7 +58,7 @@ describe('WebSocket clients', () => { // eslint-disable-line no-undef
     setTimeout(async () => {
       await client.enqueueMessage('hello1');
       await client2.enqueueMessage('hello2');
-    }, 1000)
+    }, 2000)
 
     await prom1
 
