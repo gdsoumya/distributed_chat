@@ -77,7 +77,6 @@ describe('Encrypted direct messages', () => {
       assert.equal(userDatum.msg, nextMsg, 'Client 2 privateMessage mismatch')
     }
 
-
     const prom3 = client2.addListenerWrapPromise(
       'privateMessage', 'privateMessage',
       listenerFunc2,

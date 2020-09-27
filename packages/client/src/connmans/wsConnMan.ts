@@ -28,7 +28,7 @@ export const WebSocketConnectionManager = class extends ConnectionManager {
   }
 
   async registerCallbacks() {
-    return new Promise(async (resolve) => {
+    return new Promise((resolve) => {
       this.wsSocket = this.connection as WebSocket
 
       this.wsSocket.onopen = (openEvent: OpenEvent) => {

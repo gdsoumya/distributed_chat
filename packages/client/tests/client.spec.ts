@@ -51,7 +51,6 @@ describe('WebSocket clients', () => { // eslint-disable-line no-undef
       client.addStageListener('publicMessage', 'publicMessage', wrappedListenerFunc)
     })
 
-
     await client.start();
     await client2.start()
 
