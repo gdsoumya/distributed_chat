@@ -41,13 +41,6 @@ export class PrivateMessageStage extends Stage {
   }
 
   parseReplyToNextBuilder(dataJSON: JSONDatum) {
-    if (dataJSON.type === 'success' || dataJSON.type === 'msg') {
-      // go and send the next message in the queue
-      this.builder.client.popFirstMessage()
-      this.sendServerCommand(this.builder.getClientState().connectionManager)
-    } else if (dataJSON.type === 'error') {
-      console.error('failed to send a message') // eslint-disable-line no-console
-    }
     const sharedKey = this.getSharedKey()
     const decryptedJSON = (dataJSON.msg === 'MESSAGE SENT') ? dataJSON : JSON.parse(decryptHexString(dataJSON.msg || '', sharedKey.bufferValue))
     // stay in this stage forever
@@ -78,7 +71,7 @@ export class PrivateChannelClient extends Client {
   }
 
   triggerQueueProcessing() {
-    console.log(`Message queue ${this.messageQueue.count()} flush limit ${this.flushLimit}`)
+    // console.log(`Message queue ${this.messageQueue.count()} flush limit ${this.flushLimit}`)
     const stage = this.builder.getStage()
     if (stage instanceof PrivateMessageStage) {
       if ((this.messageQueue.count() >= this.flushLimit)

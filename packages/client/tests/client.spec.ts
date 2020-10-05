@@ -32,13 +32,12 @@ describe('WebSocket clients', () => { // eslint-disable-line no-undef
 
     const expectedMessages = [
       'hello2',
-      'MESSAGE SENT',
-      'Connected to channel wizards',
-      'MESSAGE SENT',
     ]
 
     const listenerFunc = (preStage: Stage, postStage: Stage, userDatum: JSONDatum) => {
-      assert.equal(userDatum.msg, expectedMessages.pop())
+      const expectedMsg = expectedMessages.pop()
+      assert(expectedMsg, 'Ran out of expected messages')
+      assert.equal(userDatum.msg, expectedMsg)
     }
     const prom1 = new Promise((resolve, reject) => {
       const wrappedListenerFunc = (preStage: Stage, postStage: Stage, userDatum: JSONDatum) => {

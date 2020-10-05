@@ -53,8 +53,6 @@ describe('Encrypted direct messages', () => {
 
     const expectedMessages = [
       expected1Message,
-      'Connected to Network',
-      'MESSAGE SENT',
     ]
     const prom2 = client1.addListenerWrapPromise('privateMessage', 'privateMessage',
       (preStage: Stage, postStage: Stage, userDatum: JSONDatum) => {
@@ -85,11 +83,16 @@ describe('Encrypted direct messages', () => {
     client1.start()
     client2.start()
 
+    // console.log('PROM 0')
+
     await prom1 // client1 register as DM
+
+    // console.log('PROM 1')
 
     // In real life, messages are enqueued by user after client starts
     setTimeout(() => client1.enqueueMessage(expected2Message1), 1000)
-    // client2.enqueueMessage(expected1Message)
+    setTimeout(() => client2.enqueueMessage(expected1Message), 1000)
+    setTimeout(() => client1.enqueueMessage(expected2Message2), 2000)
 
     await prom2 // client1 MESSAGE SENT
 
@@ -108,7 +111,7 @@ describe('Encrypted direct messages', () => {
     try {
       await prom4 // client2 bobo the clown0 false
     } catch (e) {
-      //
+      // expected failure
     }
 
     /*

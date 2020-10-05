@@ -48,16 +48,7 @@ export class PublicMessageStage extends Stage {
   }
 
   parseReplyToNextBuilder(dataJSON: JSONDatum) {
-    if (dataJSON.type === 'success') {
-      this.ackedCount += 1
-
-      // if we've reached here, we've successfully sent the message
-      // that was first in sendServerCommand
-      this.builder.client.popFirstMessage()
-
-      // keep emptying the queue
-      this.sendServerCommand(this.builder.getClientState().connectionManager)
-    } else if (dataJSON.type === 'error') {
+    if (dataJSON.type === 'error') {
       console.log('failed to send a message') // eslint-disable-line no-console
     }
     // stay in this stage forever
@@ -131,7 +122,6 @@ export class PublicChannelClient extends Client {
   }
 
   triggerQueueProcessing() {
-    console.log(`Message queue ${this.messageQueue.count()} flush limit ${this.flushLimit}`)
     const stage = this.builder.getStage()
     if (stage instanceof PublicMessageStage) {
       if ((this.messageQueue.count() >= this.flushLimit)

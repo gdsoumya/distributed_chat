@@ -147,7 +147,7 @@ export abstract class Client {
           const result = listener(preStage, postStage, userDatum)
           // Remove any listener after we have resolved it once
           this.removeStageListener(listenerId)
-          console.log('Removed listener ', listenerId.toString())
+          // console.log('Removed listener ', listenerId.toString())
           resolve(result)
         } catch (e) {
           reject(e)
@@ -227,12 +227,16 @@ export abstract class Client {
   getConnectionListener(): DatumListener {
     return (datum: JSONDatum) => {
       try {
-        /*
+        if (datum.type === 'error') {
+          console.error(`Failed with error ${JSON.stringify(datum)}`)
+        }
         if (datum.type === 'success' && datum.msg === 'MESSAGE SENT') {
           this.ackedCount = (this.ackedCount + 1) as integer
+
+          // if we've reached here, we've successfully sent the message
+          // that was first in sendServerCommand
+          this.popFirstMessage()
         } else {
-          */
-        {
           const newBuilder = this.builder.getStage().parseReplyToNextBuilder(datum)
           const { lastUserDatum } = newBuilder.getClientState()
 
@@ -246,23 +250,23 @@ export abstract class Client {
             (filter: StageChangeListener | null) => (filter !== null) && postListeners.includes(filter),
             /* eslint-enable max-len */
           )
-          listeners.forEach((listener, index) => {
+          listeners.forEach((listener) => {
             if (listener) {
-              console.log('Listeners index', index, preStage.stageName, postStage.stageName)
+              // console.log('Listeners index', index, preStage.stageName, postStage.stageName)
               listener(preStage, postStage, lastUserDatum)
             }
           })
 
           this.builder = newBuilder
+          // Immediately start the new stage, since we are not acking a previous server command
+          this.builder.startStage()
         }
-        // Immediately start the new stage
-        this.builder.startStage()
 
       } catch (e) {
-        /* eslint-disable-line no-console */
+        /* eslint-disable no-console */
         console.error('Client Message Listener ERROR: ', JSON.stringify(e.toString()))
         console.error(e.stack)
-        /* eslint-enable-line no-console */
+        /* eslint-enable no-console */
       }
     }
   }

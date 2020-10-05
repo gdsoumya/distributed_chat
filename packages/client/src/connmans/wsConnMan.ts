@@ -32,9 +32,9 @@ export const WebSocketConnectionManager = class extends ConnectionManager {
       this.wsSocket = this.connection as WebSocket
 
       this.wsSocket.onopen = (openEvent: OpenEvent) => {
-        console.log('open')
+        // console.log('open')
         openEvent.target.onmessage = (msgEvent: MessageEvent) => {
-          console.log('message')
+          // console.log('message')
           const datum: JSONDatum = JSON.parse(msgEvent.data.toString())
           this.datumListeners.forEach((listener) => listener(datum))
         };
