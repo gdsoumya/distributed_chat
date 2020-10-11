@@ -1,10 +1,10 @@
 {
   "name": "darkchat-web",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "private": true,
   "dependencies": {
     "chai": "4.2.0",
-    "darkchat-client": "^0.3.5",
+    "darkchat-client": "^0.3.6",
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-scripts": "3.4.1"
