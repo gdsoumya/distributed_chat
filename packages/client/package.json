@@ -3,9 +3,6 @@
   "version": "0.3.5",
   "description": "Client and libraries for a private, distributed chat system",
   "main": "index.js",
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
-  },
   "types": "./src/index.d.ts",
   "files": [
     "index.js",
@@ -53,5 +50,6 @@
     "mocha": "8.0.1",
     "typescript": "4.0.2",
     "typescript-eslint": "0.0.1-alpha.0"
-  }
+  },
+  "gitHead": "e2e0b2fa64d7ce96cbb30204eca8b2f68c4e1c83"
 }
