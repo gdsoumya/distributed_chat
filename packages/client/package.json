@@ -1,9 +1,11 @@
 {
   "name": "darkchat-client",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "Client and libraries for a private, distributed chat system",
   "main": "index.js",
-  "publishConfig": { "registry": "https://npm.pkg.github.com/" },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
   "types": "./src/index.d.ts",
   "files": [
     "index.js",
