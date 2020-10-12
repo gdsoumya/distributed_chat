@@ -1,6 +1,6 @@
 {
   "name": "darkchat-client",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "description": "Client and libraries for a private, distributed chat system",
   "main": "index.js",
   "types": "./src/index.d.ts",
