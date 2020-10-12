@@ -37,6 +37,7 @@ export class PrivateMessageStage extends Stage {
         type: first.type,
         msg: encryptJSON(first, sharedKey.bufferValue),
         fromPublicKey: this.builder.getClientState().keyPair.getPublicKey().toHexString(),
+        toPublicKey: this.toPublicKey.toHexString(),
       })
     }
   }

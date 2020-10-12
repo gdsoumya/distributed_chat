@@ -31,13 +31,13 @@ describe('WebSocket clients', () => { // eslint-disable-line no-undef
 
   it('has three remaining stages', async () => { // eslint-disable-line no-undef
 
-    const { client, client2 } = createClients('villains')
+    const { client } = createClients('villains')
 
     assert.equal(client.getBuilder().getClientState().remainingStageCreators.count(), 2,
       'Expected 2 remaining stage creators for public channel client.')
   })
 
-  it('sends arbitrary JSON fields', async () => {
+  it('sends arbitrary JSON fields', async () => { // eslint-disable-line no-undef
 
     const { client, client2 } = createClients('sorcerers')
 
@@ -47,7 +47,6 @@ describe('WebSocket clients', () => { // eslint-disable-line no-undef
 
     const listenerFunc = (preStage: Stage, postStage: Stage, userDatum: JSONDatum) => {
       const expectedMsg = expectedMessages.pop()
-      console.log('Receiving in special fields')
       assert(expectedMsg, 'Ran out of expected messages')
       assert.equal(userDatum.type, 'msg')
       assert.equal(userDatum.special, 'special2')
@@ -72,12 +71,12 @@ describe('WebSocket clients', () => { // eslint-disable-line no-undef
       await client.enqueueUserDatum({
         type: 'msg',
         special: 'special1',
-        msg: 'hello1'
+        msg: 'hello1',
       });
       await client2.enqueueUserDatum({
         type: 'msg',
         special: 'special2',
-        msg: 'hello2'
+        msg: 'hello2',
       });
     }, 2000)
 
