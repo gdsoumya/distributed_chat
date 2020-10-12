@@ -58,16 +58,17 @@ export abstract class ConnectionManager {
     type: string,
     channelName?: string | null,
     userName?: string | null,
-    fromPublicKey?: Secp256k1PublicKey | null,
+    fromPublicKey?: string | null,
     msg?: string | null,
-    toPublicKey?: Secp256k1PublicKey | null,
+    toPublicKey?: string | null,
   }): void {
     const jsonString = JSON.stringify({
+      ...arguments[0],
       type,
       msg,
       uname: userName,
-      fromPublicKey: fromPublicKey && fromPublicKey.toHexString(),
-      toPublicKey: toPublicKey && toPublicKey.toHexString(),
+      fromPublicKey: fromPublicKey,
+      toPublicKey: toPublicKey,
       cname: channelName,
     })
     // console.log('sendDatum', jsonString) // eslint-disable-line no-console

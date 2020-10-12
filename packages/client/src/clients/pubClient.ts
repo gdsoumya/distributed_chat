@@ -36,11 +36,12 @@ export class PublicMessageStage extends Stage {
     if (!this.builder.client.isMessageQueueEmpty()) {
       const datum: JSONDatum = this.builder.client.getFirstMessage()
       connectionManager.sendDatum({
-        type: 'msg',
+        ...datum,
+        type: datum.type,
         userName: this.userName,
         channelName: this.channelName,
         msg: datum.msg,
-        fromPublicKey: this.builder.getClientState().keyPair.getPublicKey(),
+        fromPublicKey: this.builder.getClientState().keyPair.getPublicKey().toHexString(),
       })
       this.sentCount += 1
     }
@@ -75,7 +76,7 @@ export class JoinChannelStage extends Stage {
       type: 'join',
       userName: this.userName,
       channelName: this.channelName,
-      fromPublicKey: this.builder.getClientState().keyPair.getPublicKey(),
+      fromPublicKey: this.builder.getClientState().keyPair.getPublicKey().toHexString(),
     })
   }
 

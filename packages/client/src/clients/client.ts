@@ -210,8 +210,13 @@ export abstract class Client {
 
   abstract triggerQueueProcessing(): void
 
-  enqueueUserDatum(datum: JSONDatum) {
-    this.messageQueue = this.messageQueue.push(datum)
+  enqueueUserDatum(datum: {[key: string]: string}) {
+    const jsonDatum: JSONDatum = {
+      ...datum,
+      type: datum.type || 'msg',
+      fromPublicKey: this.builder.getClientState().keyPair.getPublicKey().toHexString(),
+    }
+    this.messageQueue = this.messageQueue.push(jsonDatum)
     this.sentCount = (this.sentCount + 1) as integer
     this.triggerQueueProcessing()
   }

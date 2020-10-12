@@ -8,6 +8,7 @@ import { ConnectionManager, JSONDatum, integer } from '../..'
 import { ClientStateBuilder } from '../builder'
 import { RequestChallengeStageCreator } from '../stages/register'
 import { encryptJSON, decryptHexString } from '../clientUtils'
+import { defaultMaxListeners } from 'ws'
 
 export class PrivateMessageStage extends Stage {
 
@@ -32,10 +33,10 @@ export class PrivateMessageStage extends Stage {
       const first: JSONDatum = this.builder.client.getFirstMessage()
       const sharedKey = this.getSharedKey()
       connectionManager.sendDatum({
-        type: 'msg',
+        ...first,
+        type: first.type,
         msg: encryptJSON(first, sharedKey.bufferValue),
-        fromPublicKey: this.builder.getClientState().keyPair.getPublicKey(),
-        toPublicKey: this.toPublicKey,
+        fromPublicKey: this.builder.getClientState().keyPair.getPublicKey().toHexString(),
       })
     }
   }

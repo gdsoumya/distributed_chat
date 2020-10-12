@@ -20,7 +20,7 @@ export class SignChallengeStage extends Stage {
     assert(this.builder.getClientState().remainingStageCreators.count() >= 1, 'No remaining stage creators from SIGN CHALLENGE')
     this.builder.getClientState().connectionManager.sendDatum({
       type: 'verify',
-      fromPublicKey: this.builder.getClientState().keyPair.getPublicKey(),
+      fromPublicKey: this.builder.getClientState().keyPair.getPublicKey().toHexString(),
       msg: this.challengeSig.toHexString(),
     })
   }
@@ -50,7 +50,7 @@ export class RequestChallengeStage extends Stage {
   sendServerCommand() {
     this.builder.getClientState().connectionManager.sendDatum({
       type: 'connect',
-      fromPublicKey: this.builder.getClientState().keyPair.getPublicKey(),
+      fromPublicKey: this.builder.getClientState().keyPair.getPublicKey().toHexString(),
     })
   }
 
