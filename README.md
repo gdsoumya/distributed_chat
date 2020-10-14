@@ -107,7 +107,7 @@ To make a successful connection to a node/server you need to verify your identit
 > connect
 ```
 
-The server will send a random string htat you need to sign and send back to the server for verification
+The server will send a random string that you need to sign and send back to the server for verification
 
 ```bash
 #server responsse
