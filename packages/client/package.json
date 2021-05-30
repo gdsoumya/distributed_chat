@@ -30,7 +30,7 @@
     "secp256k1": "4.0.1",
     "text-encoder": "0.0.4",
     "uuid": "7.0.3",
-    "ws": "7.2.5"
+    "ws": "7.4.6"
   },
   "devDependencies": {
     "@types/chai": "4.2.11",
